@@ -1,0 +1,17 @@
+# dependencies and build output
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# local tool folders (not part of the website)
+.agents/
+.claude/
+10k-websites/
+skills-lock.json
+
+# local env and OS files
+.env*
+.DS_Store
+Thumbs.db

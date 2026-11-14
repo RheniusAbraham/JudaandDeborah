@@ -1,0 +1,72 @@
+// All wedding details live here. Change a line, and every place on the page follows.
+export const wedding = {
+  // First names, for the big script names on the opening arch.
+  partnerOne: 'Judah',
+  partnerTwo: 'Deborah',
+
+  // Scene 2: the couple, with their parents.
+  bride: {
+    name: 'Deborah Daniel',
+    relation: 'Daughter of',
+    parents: ['Late Mr. P. Daniel', 'Mrs. Jesti Daniel'],
+  },
+  groom: {
+    name: 'Judah Oushed Rajkumar',
+    relation: 'Son of',
+    parents: ['Mr. S. Antony Rajkumar', 'Mrs. Nirmala Rajkumar'],
+  },
+
+  // The day. The countdown runs to the start of the ceremony (local time).
+  start: '2027-01-04T15:00:00',
+  dateLabel: 'Monday, 4 January 2027',
+  footerDate: '4 January 2027',
+
+  // Scene 4: the church ceremony.
+  church: {
+    name: 'City Harvest AG Church',
+    address: 'HBR Layout, Bengaluru',
+    time: '3:00 PM',
+    start: '2027-01-04T15:00:00',
+    end: '2027-01-04T17:00:00',
+    // opens this exact place in Google Maps (from the map link shared for the church)
+    maps: 'https://maps.google.com/?cid=15349422656933301550',
+  },
+
+  // Scene 5: the reception, the same evening.
+  reception: {
+    name: 'CMA Palace Convention & Wedding Hall',
+    address: 'Bengaluru',
+    time: '6:30 PM',
+    note: 'Dinner, music and dancing',
+    start: '2027-01-04T18:30:00',
+    end: '2027-01-04T22:30:00',
+    // opens this exact place in Google Maps (from the map link shared for the hall)
+    maps: 'https://maps.google.com/?cid=12115308714572026884',
+  },
+
+  rsvpBy: '1 January 2027',
+  // WhatsApp number that receives RSVPs, digits only with country code, e.g. '919876543210'.
+  // Leave empty and the form only shows a thank-you on screen.
+  rsvpWhatsApp: '',
+};
+
+type Place = { name: string; address: string; maps?: string };
+type Timed = Place & { start: string; end: string };
+
+/** A link that opens the place in Google Maps (its exact listing when we have one). */
+export function mapsUrl(p: Place) {
+  if (p.maps) return p.maps;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.name}, ${p.address}`)}`;
+}
+
+/** A Google Calendar link for one event of the day. */
+export function calendarUrl(title: string, e: Timed) {
+  const fmt = (iso: string) => iso.replace(/[-:]/g, '');
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${fmt(e.start)}/${fmt(e.end)}`,
+    location: `${e.name}, ${e.address}`,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}

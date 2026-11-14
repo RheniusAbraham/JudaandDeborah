@@ -1,0 +1,830 @@
+/* Colors sampled from the arch watercolor itself. */
+:root {
+  --paper: #fdeee5;      /* the image's center paper */
+  --wash: #fedec7;       /* the warm wash along its bottom edge */
+  --ink: #5a2f2a;        /* the brown of the line art */
+  --ink-soft: #80544c;
+  --rose: #c23b57;       /* the pink roses, deepened for legible buttons */
+  --rose-bright: #e44c67;
+  --marigold: #e8892c;
+  --sage: #6f8478;
+  --line: rgba(90, 47, 42, .22);
+  --ratio: 1536 / 2314;  /* the artwork's exact proportions (cropped at the rod) */
+  --ease: cubic-bezier(.22, .8, .24, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html { overflow-x: hidden; overflow-x: clip; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  overflow-x: hidden; overflow-x: clip;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 400;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+img { display: block; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--rose); outline-offset: 3px; border-radius: 4px; }
+
+/* ================= HERO (phones first) =================
+   The artwork is shown whole and uncropped at full width. The .stage box always keeps
+   the artwork's exact proportions, so the text inside the arch is placed in the
+   artwork's own coordinates and scales with it (cqw = 1% of the artwork's width). */
+/* Full screen height everywhere, centered. On phones (narrower than the artwork)
+   the left and right edges trim evenly; on computers the whole artwork shows. */
+/* Scene 1 is a tall scroll track; the arch stays pinned while you walk through it. */
+.opening { position: relative; height: 230vh; background: var(--paper); }
+@media (min-width: 900px) { .opening { height: 260vh; } }
+.pin {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--paper);
+}
+.layers { position: absolute; inset: 0; }
+.layer { object-fit: cover; will-change: transform; }
+svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+/* only the curtain fabric takes taps; everything else lets them through */
+.layer-left .fabric, .layer-right .fabric { pointer-events: visiblePainted; cursor: pointer; }
+.layer-left .fabric, .layer-right .fabric { -webkit-tap-highlight-color: transparent; }
+/* The empty back wall melts into the page at its sides, so no card edge shows
+   when the curtains move away on wide screens. */
+.layer-plate {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+/* ================= SCENE 2: THE COUPLE (phones first) ================= */
+.couple { position: relative; height: 240vh; background: var(--paper); }
+.cpin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  --fig-h: 68svh;                       /* the couple's height on screen */
+  --fig-w: calc(var(--fig-h) * 0.546);  /* the illustration's proportions */
+}
+.window {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: calc(var(--fig-w) * 1.5);
+  height: calc(var(--fig-h) * 1.18);
+  margin-left: calc(var(--fig-w) * -0.75);
+}
+.window svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.couple-figure {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--fig-w);
+  height: var(--fig-h);
+  margin-left: calc(var(--fig-w) / -2);
+}
+.couple-figure img { object-fit: contain; object-position: bottom; }
+
+/* the names: on phones they sit above the couple, bride on her side, groom on his */
+.person { position: absolute; top: max(4svh, 22px); width: 46%; }
+.person-bride { left: 4%; text-align: left; }
+.person-groom { right: 4%; text-align: right; }
+.pname { font-family: var(--font-script), cursive; font-weight: 400; font-size: clamp(2.1rem, 9vw, 3.4rem); line-height: 1.05; color: var(--ink); text-wrap: balance; }
+.parents { font-size: clamp(.86rem, 3.4vw, 1.05rem); line-height: 1.45; color: var(--ink-soft); margin-top: 8px; }
+.parents span { display: block; }
+.relation { font-style: italic; }
+.parent { color: var(--ink); }
+
+.spray { position: absolute; bottom: -2svh; width: min(46vw, 300px); pointer-events: none; }
+.spray svg { width: 100%; height: auto; display: block; overflow: visible; }
+.spray-left { left: -4vw; }
+.spray-right { right: -4vw; }
+.spray-right svg { transform: scaleX(-1); } /* mirrored inside, since the scroll motion owns .spray's transform */
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .couple { height: 260vh; }
+  .cpin { --fig-h: 86svh; }
+  /* computers: the names stand beside the couple, at heart height */
+  .person { top: 40%; width: min(30vw, 420px); }
+  .person-bride { left: auto; right: calc(50% + var(--fig-w) / 2 + 4vw); text-align: right; }
+  .person-groom { right: auto; left: calc(50% + var(--fig-w) / 2 + 4vw); text-align: left; }
+  .pname { font-size: clamp(3rem, 4vw, 4.6rem); }
+  .parents { font-size: 1.15rem; }
+  .spray { width: min(24vw, 420px); }
+  .spray-left { left: 2vw; }
+  .spray-right { right: 2vw; }
+}
+
+/* ================= SCENE 3: THE FAMILIES (phones first) =================
+   Phones: the two families zig-zag down the screen, joined by an S-shaped cord.
+   Computers: they stand side by side, the cord swinging beneath them. */
+.families { position: relative; height: 240vh; background: var(--paper); }
+.fpin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  --fam-h: 31svh;                       /* each portrait's height */
+  --fam-w: calc(var(--fam-h) * 0.884);  /* the illustrations' proportions */
+}
+.blessing {
+  position: absolute;
+  top: max(4svh, 20px);
+  left: 0;
+  right: 0;
+  padding: 0 20px;
+  text-align: center;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.45rem, 6.4vw, 2.6rem);
+  line-height: 1.25;
+  color: var(--ink);
+}
+.fam { position: absolute; margin: 0; }
+.fam-bride { left: 2vw; top: 17svh; }
+.fam-groom { right: 2vw; top: 56svh; }
+.fam-img, .fam-glow { width: var(--fam-w); height: var(--fam-h); }
+.fam-img { position: relative; }
+/* the portraits are cut at the knee: let them melt into the paper instead of ending in a line */
+.fam-img img {
+  object-fit: contain;
+  -webkit-mask-image: linear-gradient(#000 78%, transparent);
+  mask-image: linear-gradient(#000 78%, transparent);
+}
+.fam-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 244, 232, .95), rgba(251, 214, 194, .5) 60%, rgba(251, 214, 194, 0));
+  transform-origin: 50% 45%;
+}
+.fam figcaption {
+  position: absolute;
+  top: 30%;
+  width: calc(96vw - var(--fam-w) - 6vw);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fam-bride figcaption { left: calc(var(--fam-w) + 4vw); text-align: left; }
+.fam-groom figcaption { right: calc(var(--fam-w) + 4vw); text-align: right; }
+.fam-who { font-family: var(--font-script), cursive; font-size: clamp(1.9rem, 8vw, 2.8rem); line-height: 1.1; color: var(--ink); margin-bottom: 4px; }
+.fam-name { font-size: clamp(.9rem, 3.6vw, 1.1rem); line-height: 1.4; color: var(--ink-soft); }
+
+.cord { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.cord-wide { display: none; }
+.knot {
+  position: absolute;
+  left: 50%;
+  top: 50.5%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f3d9a2, #b8873f 70%);
+  box-shadow: 0 0 0 3px rgba(216, 176, 106, .25);
+}
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .families { height: 260vh; }
+  .fpin { --fam-h: 56svh; }
+  .blessing { top: 7svh; font-size: clamp(2rem, 3vw, 2.8rem); }
+  .fam { top: auto; bottom: 16svh; }
+  .fam-bride { left: auto; right: 56%; }
+  .fam-groom { right: auto; left: 56%; }
+  .fam figcaption { top: auto; bottom: -11svh; left: 0; right: 0; width: auto; text-align: center; }
+  .fam-bride figcaption, .fam-groom figcaption { left: 0; right: 0; text-align: center; }
+  .fam-who { font-size: clamp(2.2rem, 2.8vw, 3rem); }
+  .cord-tall { display: none; }
+  .cord-wide { display: block; }
+  .knot { top: 58.5%; }
+}
+
+/* ================= SCENE 4: THE HOLY MATRIMONY ================= */
+.holy { position: relative; height: 300vh; background: var(--paper); }
+.hpin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  --church-h: 80svh; /* big: on phones the side aisles run off the edges */
+}
+.h-sky { position: absolute; inset: 0; background: linear-gradient(#fbe1cf, #fdeee5 62%); }
+.h-head { position: absolute; top: max(4svh, 18px); left: 0; right: 0; padding: 0 20px; text-align: center; z-index: 3; }
+.h-title { font-family: var(--font-script), cursive; font-weight: 400; font-size: clamp(2.7rem, 12vw, 4.8rem); line-height: 1.1; color: var(--ink); }
+.h-date { font-style: italic; color: var(--ink-soft); font-size: clamp(1rem, 4vw, 1.25rem); }
+.church {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0 auto;
+  width: calc(var(--church-h) * 1400 / 1770);
+  margin-left: calc(50% - var(--church-h) * 700 / 1770); /* centered even when wider than the screen */
+  aspect-ratio: 1400 / 1770;
+  transform-origin: 50% 86%; /* the zoom heads through the doorway */
+}
+.church svg { width: 100%; height: 100%; display: block; overflow: visible; }
+/* door leaves turn on their hinges; the bell hangs from its top */
+.door-l { transform-box: fill-box; transform-origin: 0% 50%; }
+.door-r { transform-box: fill-box; transform-origin: 100% 50%; }
+.bell { transform-box: fill-box; transform-origin: 50% 0%; }
+.h-light {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(ellipse 80% 70% at 50% 62%, #fff8e2, #ffefd0 45%, #fde8d8 100%);
+}
+.h-card {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16svh 24px 0;
+  text-align: center;
+}
+.h-time { font-weight: 300; font-size: clamp(2.4rem, 11vw, 3.8rem); line-height: 1.1; color: var(--ink); font-variant-numeric: lining-nums; }
+.h-church { font-weight: 500; font-size: clamp(1.15rem, 4.8vw, 1.5rem); margin-top: 10px; }
+.h-address { font-style: italic; color: var(--ink-soft); max-width: 30ch; }
+.h-actions { display: grid; gap: 12px; margin-top: 24px; width: min(100%, 22rem); }
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .holy { height: 320vh; }
+  .hpin { --church-h: 90svh; }
+  .h-actions { grid-template-columns: 1fr 1fr; width: min(100%, 30rem); }
+}
+
+/* ================= SCENE 5: THE RECEPTION ================= */
+.reception { position: relative; height: 280vh; background: #e7b8a1; }
+.rpin { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+.rlayer { position: absolute; inset: -6% 0; width: 100%; height: 112%; display: block; }
+.rose-arch { transform-box: fill-box; transform-origin: 50% 50%; }
+.chandelier-glow { transform-box: fill-box; transform-origin: 50% 50%; }
+/* dusk: the room before the lights come on */
+.r-dim { position: absolute; inset: 0; background: linear-gradient(rgba(74, 38, 52, .58), rgba(74, 38, 52, .42)); pointer-events: none; }
+.r-head {
+  position: absolute;
+  top: max(3svh, 16px);
+  left: 0;
+  right: 0;
+  padding: 0 20px;
+  text-align: center;
+  text-shadow: 0 1px 14px rgba(255, 244, 232, .95), 0 0 2px rgba(255, 244, 232, .9);
+}
+.r-title { font-family: var(--font-script), cursive; font-weight: 400; font-size: clamp(2.7rem, 12vw, 4.8rem); line-height: 1.1; color: var(--ink); }
+.r-note { font-style: italic; color: var(--ink); font-size: clamp(1rem, 4vw, 1.25rem); }
+.r-card {
+  position: absolute;
+  left: 50%;
+  bottom: max(4svh, 18px);
+  width: min(92vw, 30rem);
+  margin-left: calc(min(92vw, 30rem) / -2);
+  padding: 22px 22px 24px;
+  text-align: center;
+  background: rgba(253, 241, 233, .9);
+  border: 1px solid rgba(90, 47, 42, .18);
+  border-radius: 22px;
+  box-shadow: 0 18px 50px -24px rgba(90, 47, 42, .45);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.r-time { font-weight: 300; font-size: clamp(2.2rem, 10vw, 3.2rem); line-height: 1.1; font-variant-numeric: lining-nums; }
+.r-venue { font-weight: 500; font-size: clamp(1.1rem, 4.6vw, 1.4rem); margin-top: 6px; }
+.r-address { font-style: italic; color: var(--ink-soft); }
+.r-actions { display: grid; gap: 10px; margin-top: 18px; }
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .reception { height: 300vh; }
+  .r-actions { grid-template-columns: 1fr 1fr; }
+}
+
+/* ================= SCENE 6: THE ENVELOPE + RSVP ================= */
+.invite-env { position: relative; height: 260vh; background: var(--paper); }
+.epin { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+.env-head { position: absolute; top: max(5svh, 22px); left: 0; right: 0; padding: 0 20px; text-align: center; }
+.env-sub { font-style: italic; color: var(--ink-soft); font-size: clamp(1rem, 4vw, 1.2rem); }
+.env {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8svh;
+  margin: 0 auto;
+  width: min(96vw, calc(62svh * 1.25), 760px);
+  aspect-ratio: 1000 / 800;
+  container-type: inline-size;
+}
+.env-part { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; } /* so the card's button stays tappable */
+.env-back { z-index: 1; }
+.env-flap-open { z-index: 2; transform-origin: 50% 32.75%; }  /* hinged at the top edge of the envelope */
+.env-card { z-index: 3; }
+.env-front { z-index: 4; }
+.env-flap-closed { z-index: 5; transform-origin: 50% 32.75%; }
+.env-seal { z-index: 6; transform-origin: 50% 69%; }
+.env-card {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 35%;
+  height: 56%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6cqw;
+  padding: 3cqw;
+  text-align: center;
+  background: linear-gradient(#fffaf5, #fdf1e8);
+  border: 1px solid rgba(90, 47, 42, .2);
+  border-radius: 1.4cqw;
+  box-shadow: 0 1.5cqw 4cqw -2cqw rgba(90, 47, 42, .35);
+}
+.env-card::before { /* a fine inner border, like a printed card */
+  content: "";
+  position: absolute;
+  inset: 1.4cqw;
+  border: 1px solid rgba(201, 154, 82, .55);
+  border-radius: 1cqw;
+  pointer-events: none;
+}
+.card-kicker { font-family: var(--font-script), cursive; font-size: 5.4cqw; line-height: 1.1; color: var(--ink); }
+.cd { display: flex; justify-content: center; gap: 5cqw; }
+.cd-unit { display: flex; flex-direction: column; align-items: center; min-width: 9cqw; }
+.cd-n { font-weight: 300; font-size: 7.4cqw; line-height: 1; font-variant-numeric: lining-nums tabular-nums; color: var(--ink); }
+.cd-l { font-style: italic; font-size: 2.3cqw; color: var(--ink-soft); }
+.cd-today { font-size: 4cqw; font-style: italic; }
+.card-by { font-style: italic; font-size: 2.5cqw; color: var(--ink-soft); }
+.btn.small { min-height: 44px; padding: 0 22px; font-size: .95rem; }
+.card-btn { margin-top: .6cqw; position: relative; z-index: 1; }
+
+.rsvp-sec { position: relative; padding: 24px 22px 96px; background: var(--paper); scroll-margin-top: 16px; }
+.rsvp-title, .env-title, .h-title, .r-title { font-family: var(--font-script), cursive; font-style: normal; font-weight: 400; }
+.rsvp-title, .env-title { font-size: clamp(2.7rem, 12vw, 4.4rem); line-height: 1.1; text-align: center; color: var(--ink); }
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .env { width: min(60vw, calc(70svh * 1.25), 900px); }
+}
+
+/* ================= SCENE 7: THE CLOSING ================= */
+.closing { position: relative; height: 240vh; background: var(--paper); }
+.cl-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 3svh, 32px);
+  padding: 0 16px;
+  background: radial-gradient(ellipse 70% 55% at 50% 45%, #fff6ee, var(--paper) 70%);
+}
+.wreath {
+  position: relative;
+  width: min(94vw, 66svh, 640px);
+  aspect-ratio: 1;
+  container-type: inline-size;
+}
+.wreath-art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.w-leaf, .w-rose { transform-box: fill-box; transform-origin: 50% 50%; }
+.close-text {
+  position: absolute;
+  inset: 18%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1.4cqw;
+}
+.close-kicker { font-style: italic; font-weight: 300; font-size: 4.6cqw; line-height: 1.3; color: var(--ink); text-wrap: balance; }
+.close-names { font-family: var(--font-script), cursive; font-size: 11cqw; line-height: 1.05; color: var(--ink); display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: 2.5cqw; }
+.close-names .ch { display: inline-block; }
+.close-amp { display: inline-block; font-family: var(--font-serif), serif; font-style: italic; font-weight: 300; font-size: .5em; color: var(--rose-bright); }
+.close-date { font-size: 3.6cqw; color: var(--ink); }
+.close-verse { font-style: italic; font-size: 3.2cqw; color: var(--ink-soft); }
+.close-verse span { display: block; font-style: normal; font-size: .85em; }
+.close-actions { display: grid; gap: 10px; width: min(92vw, 22rem); }
+
+.site-foot { padding: 40px 20px calc(48px + env(safe-area-inset-bottom)); text-align: center; background: var(--paper); border-top: 1px solid var(--line); }
+.foot-love { font-style: italic; color: var(--ink-soft); }
+.site-foot .foot-names { font-family: var(--font-script), cursive; font-size: clamp(2.2rem, 9vw, 3rem); line-height: 1.2; color: var(--ink); }
+.site-foot .foot-date { color: var(--ink-soft); }
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .closing { height: 260vh; }
+  .close-actions { grid-template-columns: 1fr 1fr; width: min(90vw, 30rem); }
+}
+
+/* the zoom heads for the middle of the arch's opening */
+.layer, .inside { transform-origin: 50% 55%; }
+
+/* The verse waiting on the empty wall behind the arch. */
+.verse {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 28px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+}
+.verse p {
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.7rem, 7vw, 3rem);
+  line-height: 1.3;
+  max-width: 16ch;
+  text-wrap: balance;
+}
+.verse cite { margin-top: 14px; font-style: normal; color: var(--ink-soft); font-size: 1rem; letter-spacing: .02em; }
+.stage {
+  position: relative;
+  flex: none;
+  height: 100%;
+  width: auto;
+  aspect-ratio: var(--ratio);
+  container-type: inline-size;
+  /* no clipping here: the curtains travel out to the edge of the screen (.pin clips) */
+}
+
+/* The empty space inside the arch: below the hanging strings, between the curtains. */
+.inside {
+  position: absolute;
+  top: 39.3%;
+  bottom: 11%;
+  left: 17%;
+  right: 17%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.together {
+  font-style: italic;
+  font-weight: 300;
+  font-size: 3.7cqw;
+  color: var(--ink-soft);
+  letter-spacing: .01em;
+}
+.names {
+  font-family: var(--font-script), cursive;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1;
+  margin: 2.2cqw 0 1.6cqw;
+}
+.names .n { display: block; font-size: 13.2cqw; padding: .08em .1em .14em; }
+.names .ch { display: inline-block; }
+.names .and {
+  display: block;
+  font-family: var(--font-serif), serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 6.4cqw;
+  line-height: 1;
+  color: var(--rose-bright);
+  margin: -.1em 0 -.05em;
+}
+.invite { font-style: italic; font-weight: 300; font-size: 3.5cqw; color: var(--ink-soft); }
+.when { font-size: 4.7cqw; font-weight: 500; margin-top: 3cqw; letter-spacing: .01em; }
+.where { font-size: 3.6cqw; color: var(--ink-soft); }
+
+.cue {
+  position: absolute;
+  bottom: 2.6%;
+  left: 0;
+  right: 0;
+  width: max-content;
+  margin-inline: auto; /* centered without transform, which the intro animation owns */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 4px 12px;
+  font-size: 3.3cqw;
+  font-style: italic;
+  color: var(--ink-soft);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Starting states for the Anime.js intro (only with JS, never with reduced motion). */
+@media (prefers-reduced-motion: no-preference) {
+  .js .layers, .js .together, .js .names .ch, .js .names .and, .js .after {
+    opacity: 0;
+    /* safety net: if the script never runs, the invitation still appears */
+    animation: appear .6s 6s forwards;
+  }
+}
+@keyframes appear { to { opacity: 1; } }
+
+/* ================= SECTIONS ================= */
+.sec { padding: 72px 22px; }
+.col { max-width: 32rem; margin: 0 auto; }
+.center { text-align: center; }
+
+h2 {
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(2rem, 8.4vw, 2.6rem);
+  line-height: 1.2;
+  text-align: center;
+  color: var(--ink);
+}
+.lede { text-align: center; color: var(--ink-soft); font-style: italic; margin-top: 6px; }
+
+/* Countdown: one sentence, set like a line of the invitation. */
+.countdown {
+  text-align: center;
+  padding-top: 56px;
+  padding-bottom: 40px;
+  background: linear-gradient(var(--wash), var(--paper) 220px);
+}
+.count-lead { font-style: italic; color: var(--ink-soft); }
+.count-line {
+  font-weight: 300;
+  font-size: clamp(1.45rem, 6.2vw, 2rem);
+  line-height: 1.3;
+  max-width: 18ch;
+  margin: 6px auto 0;
+  text-wrap: balance;
+  font-variant-numeric: lining-nums;
+}
+
+/* The day: a real sequence, so a timeline. */
+.timeline { list-style: none; padding: 0; margin-top: 36px; }
+.timeline li { display: grid; grid-template-columns: 5.4rem 1fr; column-gap: 18px; }
+.timeline .t { font-weight: 500; font-size: 1rem; padding-top: .15em; text-align: right; white-space: nowrap; font-variant-numeric: lining-nums; }
+.timeline .what { position: relative; padding: 0 0 30px 22px; border-left: 1px solid var(--line); }
+.timeline li:last-child .what { border-left-color: transparent; padding-bottom: 0; }
+.timeline .what::before {
+  content: "";
+  position: absolute;
+  left: -5.5px;
+  top: .5em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--marigold);
+  box-shadow: 0 0 0 4px var(--paper);
+}
+.timeline h3 { font-weight: 500; font-size: 1.15rem; line-height: 1.35; }
+.timeline p { color: var(--ink-soft); font-size: 1rem; }
+
+/* Venue */
+.venue-name { font-size: 1.3rem; font-weight: 500; margin-top: 22px; }
+.venue-address { color: var(--ink-soft); }
+.actions { display: grid; gap: 12px; margin-top: 26px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 26px;
+  border-radius: 999px;
+  border: 1px solid var(--rose);
+  background: var(--rose);
+  color: #fff7f2;
+  font: inherit;
+  font-weight: 500;
+  font-size: 1.02rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color .3s var(--ease), transform .3s var(--ease);
+}
+.btn:hover { background: #a92f49; }
+.btn:active { transform: scale(.98); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: rgba(90, 47, 42, .45); }
+.btn.ghost:hover { background: rgba(90, 47, 42, .06); }
+
+/* RSVP */
+.panel {
+  margin-top: 30px;
+  padding: 26px 20px 28px;
+  background: rgba(255, 250, 246, .72);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+.rsvp-form { display: grid; gap: 22px; }
+.field { display: grid; gap: 8px; border: 0; padding: 0; min-width: 0; }
+.field > label, .field legend, .field .label { font-weight: 500; font-size: 1rem; padding: 0; }
+input:not([type="radio"]), textarea {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid rgba(90, 47, 42, .38);
+  border-radius: 12px;
+  background: #fffaf6;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px; /* stops iOS from zooming in */
+  transition: border-color .25s var(--ease);
+}
+textarea { resize: vertical; min-height: 96px; }
+input::placeholder, textarea::placeholder { color: #a8857c; }
+input:focus-visible, textarea:focus-visible { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(194, 59, 87, .18); }
+
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.choice label { position: relative; }
+.choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.choice span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  border: 1px solid rgba(90, 47, 42, .38);
+  border-radius: 12px;
+  background: #fffaf6;
+  transition: background-color .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease);
+}
+.choice input:checked + span { background: var(--ink); border-color: var(--ink); color: #fff7f2; }
+.choice input:focus-visible + span { outline: 2px solid var(--rose); outline-offset: 3px; }
+
+.stepper { display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(90, 47, 42, .38); border-radius: 999px; background: #fffaf6; width: max-content; padding: 4px; }
+.stepper button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font: inherit; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+.stepper button:hover:not(:disabled) { background: rgba(90, 47, 42, .07); }
+.stepper button:disabled { opacity: .35; cursor: default; }
+.stepper output { min-width: 2.2ch; text-align: center; font-size: 1.15rem; font-weight: 500; }
+.rsvp-form .btn { width: 100%; margin-top: 4px; }
+
+.rsvp-done { text-align: center; padding: 10px 0; }
+.rsvp-done-title { font-family: var(--font-script), cursive; font-size: 2.4rem; line-height: 1.2; }
+.rsvp-done p:not(.rsvp-done-title) { color: var(--ink-soft); margin-top: 6px; }
+.link-btn { margin-top: 18px; min-height: 44px; border: 0; background: none; color: var(--rose); font: inherit; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+
+/* Footer: the artwork's own bottom edge. */
+.foot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: min(52vw, 440px);
+  padding: 48px 20px calc(40px + env(safe-area-inset-bottom));
+  background-color: var(--wash);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center bottom;
+  text-align: center;
+}
+.foot::before { /* softens the seam between the page and the artwork */
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 40%;
+  background: linear-gradient(var(--paper), rgba(253, 238, 229, 0));
+  pointer-events: none;
+}
+.foot p { position: relative; }
+.foot-names { font-family: var(--font-script), cursive; font-size: clamp(2.4rem, 10vw, 3.4rem); line-height: 1.2; }
+.foot-date { color: var(--ink-soft); font-style: italic; }
+
+/* Floating RSVP on phones */
+.sticky-rsvp {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 30px;
+  border-radius: 999px;
+  background: var(--rose);
+  color: #fff7f2;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 10px 28px -10px rgba(90, 47, 42, .55);
+  opacity: 0;
+  transform: translate(-50%, 18px);
+  pointer-events: none;
+  transition: opacity .4s var(--ease), transform .4s var(--ease);
+}
+.sticky-rsvp.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+
+/* Top menu: computers only. */
+.topnav { display: none; }
+
+@media (min-width: 720px) {
+  .sec { padding: 88px 40px; }
+  .actions { grid-template-columns: 1fr 1fr; }
+  .panel { padding: 34px 32px 36px; }
+  .sticky-rsvp { display: none; }
+}
+
+/* ================= LANDING: wider screens =================
+   When the screen is wider than the artwork, show it whole at full screen height. */
+.inside { bottom: 7%; }
+
+/* Rest of the site: kept for the next sections, not on the landing page yet. */
+@media (min-width: 900px) and (orientation: landscape) {
+
+  .content {
+    container-type: inline-size;
+    background:
+      radial-gradient(70% 45% at 70% 0%, rgba(254, 222, 199, .7), rgba(254, 222, 199, 0) 70%),
+      var(--paper);
+  }
+
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: clamp(18px, 2.4vw, 36px);
+    padding: 18px clamp(28px, 4vw, 64px);
+    background: rgba(253, 238, 229, .82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(90, 47, 42, .08);
+  }
+  .topnav a:not(.btn) {
+    color: var(--ink);
+    text-decoration: none;
+    padding: 6px 2px;
+    background: linear-gradient(var(--rose), var(--rose)) left bottom / 0 1px no-repeat;
+    transition: background-size .35s var(--ease);
+  }
+  .topnav a:not(.btn):hover { background-size: 100% 1px; }
+  .btn.small { min-height: 42px; padding: 0 24px; font-size: .95rem; }
+  .sec, .pair #venue { scroll-margin-top: 72px; } /* menu jumps land below the pinned bar */
+
+  .countdown { background: none; padding-top: clamp(64px, 12vh, 140px); padding-bottom: 24px; }
+  .count-line { font-size: clamp(2rem, 3.2vw, 3rem); max-width: 30ch; }
+  .col { max-width: 34rem; }
+  .foot { min-height: 340px; }
+}
+
+/* Wide content area: the day and the venue sit side by side. */
+@container (min-width: 800px) {
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .pair .sec { padding-left: 36px; padding-right: 36px; }
+  .pair .actions { grid-template-columns: 1fr; max-width: 20rem; margin-inline: auto; }
+  .pair #venue { border-left: 1px solid var(--line); margin-top: 88px; padding-top: 0; }
+}
+
+@media (hover: hover) {
+  .cue:hover { color: var(--ink); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No walk-through: the arch, then the verse as a calm section below it. */
+  .opening { height: auto; }
+  .pin { position: relative; flex-direction: column; align-items: center; height: auto; overflow: visible; }
+  .pin .stage { height: 100vh; height: 100svh; }
+  .verse { position: static; opacity: 1; padding: 96px 28px; }
+  .couple { height: auto; }
+  .cpin { position: relative; }
+  .families { height: auto; }
+  .fpin { position: relative; }
+  /* the church with its doors closed, the details beneath it */
+  .holy { height: auto; }
+  .hpin { position: relative; height: auto; display: flex; flex-direction: column; align-items: center; padding-top: 22svh; }
+  .church { position: relative; height: var(--church-h); }
+  .h-light { display: none; }
+  .h-card { position: static; padding: 48px 24px 72px; }
+  /* the reception with its lights already on */
+  .reception { height: auto; }
+  .rpin { position: relative; height: 100svh; }
+  .r-dim { display: none; }
+  .bulb-glow, .chandelier-glow, .candle-glow, .floor-glow { opacity: 1 !important; }
+  .flame-c { opacity: 1 !important; }
+  /* the envelope already open, the card out */
+  .invite-env { height: auto; }
+  .epin { position: relative; height: 100svh; }
+  .env-flap-closed, .env-seal { display: none; }
+  .env-card { transform: translateY(-66%); }
+  /* the wreath already made, the words already written */
+  .closing { height: auto; }
+  .cl-pin { position: relative; padding: 64px 16px; }
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
