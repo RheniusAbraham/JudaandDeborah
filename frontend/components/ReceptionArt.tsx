@@ -270,21 +270,33 @@ function Chandelier({ cx, top, s }: { cx: number; top: number; s: number }) {
 
 /* ------------------------------------------------------------------ fairy lights */
 
+/**
+ * Fairy lights swagged along the two sides of the room only, framing the scene; nothing crosses
+ * the middle, where the heading and the couple are.
+ */
 function Strings() {
-  const strings = useMemo(
-    () =>
-      [0, 1, 2, 3].map((k) => {
-        const y0 = 120 + k * 58;
-        const sag = 120 + k * 34;
-        const yAt = (x: number) => y0 + sag * (1 - ((x - W / 2) / (W / 2 + 60)) ** 2);
-        const pts: string[] = [];
-        for (let x = -60; x <= W + 60; x += 40) pts.push(`${x} ${r0(yAt(x))}`);
-        const bulbs: { x: number; y: number }[] = [];
-        for (let x = -30 + (k % 2) * 23; x <= W + 30; x += 46) bulbs.push({ x, y: r0(yAt(x)) + 8 });
-        return { d: 'M' + pts.join('L'), bulbs };
-      }),
-    [],
-  );
+  const strings = useMemo(() => {
+    // [x0, y0, x1, y1, sag] for each swag; the right side mirrors the left
+    const left: [number, number, number, number, number][] = [
+      [-80, 70, 520, 150, 200],
+      [-80, 230, 400, 300, 150],
+    ];
+    const swags = [...left, ...left.map(([a, b, c, d, s]) => [W - a, b, W - c, d, s] as [number, number, number, number, number])];
+    return swags.map(([x0, y0, x1, y1, sag], k) => {
+      const at = (t: number): [number, number] => [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t + sag * Math.sin(Math.PI * t)];
+      const pts: string[] = [];
+      for (let i = 0; i <= 40; i++) {
+        const [x, y] = at(i / 40);
+        pts.push(`${r0(x)} ${r0(y)}`);
+      }
+      const n = Math.max(6, Math.round(Math.abs(x1 - x0) / 46));
+      const bulbs = Array.from({ length: n }, (_, i) => {
+        const [x, y] = at((i + 0.5 + (k % 2) * 0.25) / (n + 0.25));
+        return { x: r0(x), y: r0(y) + 8 };
+      });
+      return { d: 'M' + pts.join('L'), bulbs };
+    });
+  }, []);
   return (
     <Layer name="strings">
       {strings.map((s, k) => (
@@ -327,6 +339,8 @@ export function ReceptionLayers() {
   return (
     <>
       <Wall />
+      {/* the lights hang behind the arch and the couple */}
+      <Strings />
       <Layer name="arch">
         <RoseArch />
         <Couple />
@@ -337,7 +351,6 @@ export function ReceptionLayers() {
         <Chandelier cx={300} top={110} s={0.85} />
         <Chandelier cx={1300} top={110} s={0.85} />
       </Layer>
-      <Strings />
       <Layer name="front">
         <GuestTable cx={120} />
         <GuestTable cx={1480} />

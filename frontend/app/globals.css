@@ -74,12 +74,15 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 }
 .window {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 0;
-  width: calc(var(--fig-w) * 1.5);
+  margin: 0 auto;
+  /* narrower on phones so the flowers on its sides stay on screen */
+  width: min(calc(var(--fig-w) * 1.5), 94vw);
   height: calc(var(--fig-h) * 1.18);
-  margin-left: calc(var(--fig-w) * -0.75);
 }
+.af { transform-box: fill-box; transform-origin: 50% 100%; } /* flowers grow from their base */
 .window svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .couple-figure {
   position: absolute;
@@ -101,12 +104,6 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .relation { font-style: italic; }
 .parent { color: var(--ink); }
 
-.spray { position: absolute; bottom: -2svh; width: min(46vw, 300px); pointer-events: none; }
-.spray svg { width: 100%; height: auto; display: block; overflow: visible; }
-.spray-left { left: -4vw; }
-.spray-right { right: -4vw; }
-.spray-right svg { transform: scaleX(-1); } /* mirrored inside, since the scroll motion owns .spray's transform */
-
 @media (min-width: 900px) and (orientation: landscape) {
   .couple { height: 260vh; }
   .cpin { --fig-h: 86svh; }
@@ -116,14 +113,11 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   .person-groom { right: auto; left: calc(50% + var(--fig-w) / 2 + 4vw); text-align: left; }
   .pname { font-size: clamp(3rem, 4vw, 4.6rem); }
   .parents { font-size: 1.15rem; }
-  .spray { width: min(24vw, 420px); }
-  .spray-left { left: 2vw; }
-  .spray-right { right: 2vw; }
 }
 
 /* ================= SCENE 3: THE FAMILIES (phones first) =================
-   Phones: the two families zig-zag down the screen, joined by an S-shaped cord.
-   Computers: they stand side by side, the cord swinging beneath them. */
+   Phones: the two families zig-zag down the screen.
+   Computers: they stand side by side, large, filling the screen. */
 .families { position: relative; height: 240vh; background: var(--paper); }
 .fpin {
   position: sticky;
@@ -131,7 +125,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   height: 100vh;
   height: 100svh;
   overflow: hidden;
-  --fam-h: 31svh;                       /* each portrait's height */
+  --fam-h: min(32svh, calc(64vw / 0.884)); /* each portrait's height (leaves room for the names on narrow phones) */
   --fam-w: calc(var(--fam-h) * 0.884);  /* the illustrations' proportions */
 }
 .blessing {
@@ -148,8 +142,8 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   color: var(--ink);
 }
 .fam { position: absolute; margin: 0; }
-.fam-bride { left: 2vw; top: 17svh; }
-.fam-groom { right: 2vw; top: 56svh; }
+.fam-bride { left: 1vw; top: 15svh; }
+.fam-groom { right: 1vw; top: 55svh; }
 .fam-img, .fam-glow { width: var(--fam-w); height: var(--fam-h); }
 .fam-img { position: relative; }
 /* the portraits are cut at the knee: let them melt into the paper instead of ending in a line */
@@ -178,33 +172,17 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .fam-who { font-family: var(--font-script), cursive; font-size: clamp(1.9rem, 8vw, 2.8rem); line-height: 1.1; color: var(--ink); margin-bottom: 4px; }
 .fam-name { font-size: clamp(.9rem, 3.6vw, 1.1rem); line-height: 1.4; color: var(--ink-soft); }
 
-.cord { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-.cord-wide { display: none; }
-.knot {
-  position: absolute;
-  left: 50%;
-  top: 50.5%;
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #f3d9a2, #b8873f 70%);
-  box-shadow: 0 0 0 3px rgba(216, 176, 106, .25);
-}
-
 @media (min-width: 900px) and (orientation: landscape) {
   .families { height: 260vh; }
-  .fpin { --fam-h: 56svh; }
-  .blessing { top: 7svh; font-size: clamp(2rem, 3vw, 2.8rem); }
-  .fam { top: auto; bottom: 16svh; }
-  .fam-bride { left: auto; right: 56%; }
-  .fam-groom { right: auto; left: 56%; }
+  /* larger, and closer together, so the two families fill the screen */
+  .fpin { --fam-h: 66svh; }
+  .blessing { top: 5svh; font-size: clamp(2rem, 3vw, 2.8rem); }
+  .fam { top: auto; bottom: 13svh; }
+  .fam-bride { left: auto; right: 51%; }
+  .fam-groom { right: auto; left: 51%; }
   .fam figcaption { top: auto; bottom: -11svh; left: 0; right: 0; width: auto; text-align: center; }
   .fam-bride figcaption, .fam-groom figcaption { left: 0; right: 0; text-align: center; }
   .fam-who { font-size: clamp(2.2rem, 2.8vw, 3rem); }
-  .cord-tall { display: none; }
-  .cord-wide { display: block; }
-  .knot { top: 58.5%; }
 }
 
 /* ================= SCENE 4: THE HOLY MATRIMONY ================= */
@@ -237,6 +215,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .door-l { transform-box: fill-box; transform-origin: 0% 50%; }
 .door-r { transform-box: fill-box; transform-origin: 100% 50%; }
 .bell { transform-box: fill-box; transform-origin: 50% 0%; }
+.urn-leaf, .urn-rose { transform-box: fill-box; transform-origin: 50% 100%; } /* blooms grow from their base */
 .h-light {
   position: absolute;
   inset: 0;
@@ -299,7 +278,9 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
-.r-time { font-weight: 300; font-size: clamp(2.2rem, 10vw, 3.2rem); line-height: 1.1; font-variant-numeric: lining-nums; }
+.r-card-title { font-family: var(--font-script), cursive; font-size: clamp(2.2rem, 9vw, 3rem); line-height: 1.1; color: var(--ink); }
+.r-card-note { font-style: italic; color: var(--ink-soft); font-size: .98rem; margin-bottom: 6px; }
+.r-time { font-weight: 300; font-size: clamp(2rem, 9vw, 2.8rem); line-height: 1.1; font-variant-numeric: lining-nums; }
 .r-venue { font-weight: 500; font-size: clamp(1.1rem, 4.6vw, 1.4rem); margin-top: 6px; }
 .r-address { font-style: italic; color: var(--ink-soft); }
 .r-actions { display: grid; gap: 10px; margin-top: 18px; }
@@ -426,6 +407,14 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 @media (min-width: 900px) and (orientation: landscape) {
   .closing { height: 260vh; }
   .close-actions { grid-template-columns: 1fr 1fr; width: min(90vw, 30rem); }
+}
+
+/* ================= SMOOTHNESS =================
+   The big pieces the scroll scenes move get their own compositor layer, so the browser slides
+   and fades them on the GPU instead of repainting them every frame. */
+.couple-figure, .window, .person, .fam-img, .fam-glow, .church, .h-card, .h-light,
+.env, .env-card, .rlayer, .r-card, .r-dim, .wreath, .verse, .inside {
+  will-change: transform, opacity;
 }
 
 /* the zoom heads for the middle of the arch's opening */

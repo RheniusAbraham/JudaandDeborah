@@ -433,12 +433,20 @@ function Curtain({ side }: { side: 'left' | 'right' }) {
       sheer.current?.setAttribute('d', s.hem);
       tie.current?.setAttribute('transform', `translate(${d(CURTAIN.tie, 0.5).toFixed(1)} 0)`);
     };
+    let lastDraw = 0;
     const frame = (now: number) => {
       const dt = Math.min(0.05, last ? (now - last) / 1000 : 1 / 60);
       last = now;
       t += dt;
       tap.advance(dt);
-      apply();
+      // Redrawing the cloth is the expensive part. A tap ripple is drawn every frame so it
+      // stays crisp; the slow breeze looks the same at ~30fps; and while the visitor is
+      // scrolling through the zoom the curtains rush past, so the breeze rests there.
+      const zooming = window.scrollY > 24;
+      if (tap.active || (!zooming && now - lastDraw >= 32)) {
+        apply();
+        lastDraw = now;
+      }
       raf = visible && !document.hidden ? requestAnimationFrame(frame) : null;
     };
     const start = () => {

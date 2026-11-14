@@ -24,7 +24,7 @@ const line = (pts: [number, number][]) => 'M' + pts.map(pt).join('L');
 // The right curtain is the same shape mirrored.
 export const CURTAIN = { top: 40, tie: 1010, floor: 2240 }; // falls almost to the floor, behind the flower bed
 const FOLDS = [0, 0.075, 0.16, 0.245, 0.335, 0.425, 0.52, 0.61, 0.705, 0.8, 0.9, 1];
-const STEP = 26;
+const STEP = 34; // point spacing along the folds: smooth at any size, fewer points to redraw
 const YS: number[] = (() => {
   const a: number[] = [];
   for (let y = CURTAIN.top; y < CURTAIN.floor; y += STEP) a.push(y);

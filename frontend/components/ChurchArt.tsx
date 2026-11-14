@@ -311,6 +311,55 @@ function Aisle({ x0, x1, side }: { x0: number; x1: number; side: 1 | -1 }) {
   );
 }
 
+/** A carved stone urn beside the steps, overflowing with roses, ivy trailing over its rim.
+ *  Drawn standing on the ground at (cx, 1500). Its flowers carry .urn-leaf / .urn-rose so they
+ *  can bloom in. */
+function Urn({ cx, flip = false }: { cx: number; flip?: boolean }) {
+  const s = flip ? -1 : 1;
+  const trail = [0, 1, 2, 3, 4].map((i) => ({ x: cx - s * (74 - i * 2), y: 1336 + i * 26, a: s > 0 ? 100 + i * 6 : 80 - i * 6 }));
+  return (
+    <g>
+      {/* plinth, stem, bowl and rim */}
+      <rect x={cx - 48} y={1446} width={96} height={54} rx={4} fill="url(#ch-side)" stroke={INK} strokeWidth={2} strokeOpacity={0.65} />
+      <path d={`M${cx - 52} 1446H${cx + 52}`} stroke={INK} strokeWidth={2.4} strokeOpacity={0.6} />
+      <path d={`M${cx - 20} 1446L${cx - 14} 1404H${cx + 14}L${cx + 20} 1446Z`} fill="url(#ch-side)" stroke={INK} strokeWidth={2} strokeOpacity={0.65} />
+      <path d={`M${cx - 74} 1330Q${cx - 72} 1400 ${cx - 16} 1406H${cx + 16}Q${cx + 72} 1400 ${cx + 74} 1330Z`} fill="url(#ch-side)" stroke={INK} strokeWidth={2.2} strokeOpacity={0.7} />
+      {[-40, -14, 14, 40].map((dx) => (
+        <path key={dx} d={`M${cx + dx} 1338Q${cx + dx * 0.8} 1372 ${cx + dx * 0.4} 1398`} fill="none" stroke={INK} strokeOpacity={0.22} strokeWidth={2} />
+      ))}
+      <rect x={cx - 82} y={1318} width={164} height={16} rx={5} fill="#f7dccc" stroke={INK} strokeWidth={2} strokeOpacity={0.65} />
+      <path d={`M${cx - 60} 1352Q${cx - 50} 1390 ${cx - 14} 1396`} fill="none" stroke="#ffffff" strokeOpacity={0.4} strokeWidth={5} strokeLinecap="round" />
+      <ellipse cx={cx + 10} cy={1502} rx={70} ry={8} fill={INK} fillOpacity={0.12} />
+
+      {/* ivy trailing over the rim and down the side */}
+      {trail.map((l, i) => (
+        <g key={`t${i}`} className="urn-leaf">
+          <Leaf x={l.x} y={l.y} len={40 - i * 3} a={l.a} />
+        </g>
+      ))}
+      {/* the mound of greenery and roses */}
+      {[-150, -120, -90, -60, -30, -165, -15].map((a, i) => (
+        <g key={`l${i}`} className="urn-leaf">
+          <Leaf x={cx + (i - 3) * 18} y={1316 - (i % 2) * 8} len={64 + (i % 3) * 10} a={a} />
+        </g>
+      ))}
+      {[
+        { x: -44, y: 1300, r: 30, tone: 'pink' as const },
+        { x: 44, y: 1302, r: 30, tone: 'coral' as const },
+        { x: 0, y: 1288, r: 38, tone: 'pink' as const },
+        { x: -22, y: 1262, r: 24, tone: 'peach' as const },
+        { x: 26, y: 1260, r: 22, tone: 'peach' as const },
+        { x: -66, y: 1318, r: 20, tone: 'peach' as const },
+        { x: 66, y: 1320, r: 20, tone: 'pink' as const },
+      ].map((r, i) => (
+        <g key={`r${i}`} className="urn-rose">
+          <Rose x={cx + s * r.x} y={r.y} r={r.r} tone={r.tone} seed={1500 + i + (flip ? 20 : 0)} rot={i * 47} />
+        </g>
+      ))}
+    </g>
+  );
+}
+
 function Greenery({ flip = false }: { flip?: boolean }) {
   return (
     <g transform={flip ? 'scale(-1 1)' : undefined}>
@@ -425,12 +474,14 @@ export default function ChurchArt() {
       ))}
       <path className="rays" d="M570 1420L830 1420L1080 1540L320 1540Z" fill="url(#ch-ray)" opacity={0} />
 
-      {/* ivy and climbing roses at the foot of the walls */}
-      <g transform="translate(360 1498)"><Greenery /></g>
-      <g transform="translate(1040 1498)"><Greenery flip /></g>
+      {/* ivy and climbing roses at the foot of the side walls */}
       <g transform="translate(150 1498)"><Greenery /></g>
       <g transform="translate(1250 1498)"><Greenery flip /></g>
       <path d="M100 1500H1300" stroke={INK} strokeOpacity={0.35} strokeWidth={2} />
+
+      {/* stone urns of roses flanking the steps */}
+      <Urn cx={392} />
+      <Urn cx={1008} flip />
     </svg>
   );
 }

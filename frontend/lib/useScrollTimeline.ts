@@ -43,7 +43,11 @@ export function useScrollTimeline(root: RefObject<HTMLElement | null>, build: ()
       s.tl?.seek(shown * TL);
     };
     const onScroll = () => {
-      target = progress();
+      const p = progress();
+      // nothing to do when this scene's progress hasn't changed (it is off-screen above or
+      // below, pinned at 0 or 1): skip the frame entirely instead of re-seeking every element
+      if (p === target && raf === null && p === shown) return;
+      target = p;
       if (raf === null) raf = requestAnimationFrame(tick);
     };
 

@@ -85,7 +85,10 @@ export default function OpeningScene() {
       s.tl?.seek(shown * TL);
     };
     const onScroll = () => {
-      target = progress();
+      const p = progress();
+      // once scrolled past, the arch is pinned at its end state: don't redo the work
+      if (p === target && raf === null && p === shown) return;
+      target = p;
       if (raf === null) raf = requestAnimationFrame(tick);
     };
 

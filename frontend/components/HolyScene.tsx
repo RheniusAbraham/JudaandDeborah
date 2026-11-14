@@ -5,9 +5,8 @@
 // through the doorway into the warm light, where the ceremony details are waiting.
 
 import { useRef } from 'react';
-import { createTimeline } from 'animejs';
+import { createTimeline, stagger } from 'animejs';
 import ChurchArt from './ChurchArt';
-import Spray from './Spray';
 import { wedding, mapsUrl, calendarUrl } from '@/lib/wedding';
 import { useScrollTimeline } from '@/lib/useScrollTimeline';
 
@@ -20,6 +19,7 @@ export default function HolyScene() {
       // starting states for anything that only appears later (the details wait in the light)
       .set('.h-card', { opacity: 0, translateY: 28 }, 0)
       .set('.h-light', { opacity: 0 }, 0)
+      .set('.urn-leaf, .urn-rose', { opacity: 0, scale: 0 }, 0)
       // the church rises into view, the heading with it
       .add('.h-head', { opacity: [0, 1], translateY: [16, 0], duration: 200 }, 0)
       .add('.church', { translateY: ['16%', '0%'], opacity: [0, 1], duration: 260 }, 0)
@@ -39,9 +39,9 @@ export default function HolyScene() {
           { to: 0, duration: 60, ease: 'inOutSine' },
         ],
       }, 280)
-      // the corner roses are nearest, so they rise fastest, then step aside
-      .add('.h-spray', { translateY: ['36%', '-6%'], duration: 600, ease: 'linear' }, 0)
-      .add('.h-spray', { opacity: [1, 0], duration: 140, ease: 'linear' }, 580)
+      // the urns by the steps come into bloom as the church settles
+      .add('.urn-leaf', { opacity: [0, 1], scale: [0, 1], duration: 120, delay: stagger(5) }, 120)
+      .add('.urn-rose', { opacity: [0, 1], scale: [0, 1], rotate: [-40, 0], duration: 150, delay: stagger(9), ease: 'outBack(1.5)' }, 170)
       // walk in through the doorway, into the light
       .add('.church', { scale: [1, 3.8], duration: 300, ease: 'inQuad' }, 560)
       .add('.church', { opacity: [1, 0], duration: 120, ease: 'linear' }, 740)
@@ -64,13 +64,6 @@ export default function HolyScene() {
         </div>
 
         <div className="h-light" aria-hidden="true" />
-
-        <div className="spray h-spray spray-left" aria-hidden="true">
-          <Spray />
-        </div>
-        <div className="spray h-spray spray-right" aria-hidden="true">
-          <Spray />
-        </div>
 
         <div className="h-card">
           <p className="h-time">{church.time}</p>

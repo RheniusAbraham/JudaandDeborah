@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // hide the Next.js dev toolbar badge (it only ever shows during `npm run dev`; errors still show)
+  devIndicators: false,
   cacheComponents: true,
   partialPrefetching: true,
   images: {
