@@ -8,12 +8,12 @@ export const wedding = {
   bride: {
     name: 'Deborah Daniel',
     relation: 'Daughter of',
-    parents: ['Late Mr. P. Daniel', 'Mrs. Jesti Daniel'],
+    parents: ['Late Mr. P. Daniel', 'Mrs. Jesi Daniel'],
   },
   groom: {
     name: 'Judah Oushed Rajkumar',
     relation: 'Son of',
-    parents: ['Mr. S. Antony Rajkumar', 'Mrs. Nirmala Rajkumar'],
+    parents: ['Mr. Antony Rajkumar', 'Mrs. Nirmala Rajkumar'],
   },
 
   // The day. The countdown runs to the start of the ceremony (local time).
