@@ -1,14 +1,16 @@
 'use client';
 
 // Drives a paused Anime.js timeline from scroll position through a section.
-// The section's scroll progress (0 at its top reaching the top of the screen, 1 when its end
-// does) is eased toward smoothly, so motion glides instead of jumping with the wheel.
+// The section's scroll progress (0 when its top is LEAD of the way up the screen, 1 when its
+// end reaches the bottom), so a scene is already coming alive as it scrolls in instead of
+// arriving as an empty screen. It is eased toward smoothly, so motion glides instead of jumping with the wheel.
 // The timeline is built in "progress milliseconds": 0..1000.
 
 import { useEffect, type RefObject } from 'react';
 import { createScope, type Timeline } from 'animejs';
 
 export const TL = 1000;
+const LEAD = 0.75;
 
 export function useScrollTimeline(root: RefObject<HTMLElement | null>, build: () => Timeline) {
   useEffect(() => {
@@ -26,8 +28,9 @@ export function useScrollTimeline(root: RefObject<HTMLElement | null>, build: ()
     let last = 0;
     const progress = () => {
       const r = el.getBoundingClientRect();
-      const range = el.offsetHeight - window.innerHeight;
-      return range > 0 ? Math.min(1, Math.max(0, -r.top / range)) : 0;
+      const lead = window.innerHeight * LEAD;
+      const range = el.offsetHeight - window.innerHeight + lead;
+      return range > 0 ? Math.min(1, Math.max(0, (lead - r.top) / range)) : 0;
     };
     const tick = (now: number) => {
       const dt = Math.min(100, now - (last || now));

@@ -16,9 +16,18 @@ const serif = Spectral({
   style: ['normal', 'italic'],
 });
 
+const title = `${wedding.partnerOne} & ${wedding.partnerTwo} | Wedding invitation`;
+const description = `You are invited to the wedding of ${wedding.partnerOne} and ${wedding.partnerTwo} on ${wedding.dateLabel}.`;
+
 export const metadata: Metadata = {
-  title: `${wedding.partnerOne} & ${wedding.partnerTwo} | Wedding invitation`,
-  description: `You are invited to the wedding of ${wedding.partnerOne} and ${wedding.partnerTwo} on ${wedding.dateLabel}.`,
+  // The site's public address, so link previews (WhatsApp, Instagram...) can find the preview
+  // image (app/opengraph-image.jpg). Set NEXT_PUBLIC_SITE_URL when you publish; on Vercel the
+  // deployment address is used automatically.
+  metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : undefined,
+  title,
+  description,
+  openGraph: { title: `${wedding.partnerOne} & ${wedding.partnerTwo}`, description, type: 'website' },
+  twitter: { card: 'summary_large_image', title: `${wedding.partnerOne} & ${wedding.partnerTwo}`, description },
 };
 
 export const viewport: Viewport = {

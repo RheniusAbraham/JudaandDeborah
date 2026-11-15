@@ -42,7 +42,8 @@ export default function HolyScene() {
       // the urns by the steps come into bloom as the church settles
       .add('.urn-leaf', { opacity: [0, 1], scale: [0, 1], duration: 120, delay: stagger(5) }, 120)
       .add('.urn-rose', { opacity: [0, 1], scale: [0, 1], rotate: [-40, 0], duration: 150, delay: stagger(9), ease: 'outBack(1.5)' }, 170)
-      // walk in through the doorway, into the light
+      // walk in through the doorway, into the light (the title steps aside first)
+      .add('.h-head', { opacity: [1, 0], translateY: [0, -20], duration: 120, ease: 'inQuad' }, 540)
       .add('.church', { scale: [1, 3.8], duration: 300, ease: 'inQuad' }, 560)
       .add('.church', { opacity: [1, 0], duration: 120, ease: 'linear' }, 740)
       .add('.h-light', { opacity: [0, 1], duration: 220, ease: 'linear' }, 640)

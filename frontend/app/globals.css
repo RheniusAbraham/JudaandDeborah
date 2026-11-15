@@ -16,6 +16,8 @@
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
 html { overflow-x: hidden; overflow-x: clip; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+/* guided scrolling glides itself; no browser smoothing on top, and no pull-to-refresh bounce */
+html.guided { scroll-behavior: auto; overscroll-behavior-y: none; }
 body {
   overflow-x: hidden; overflow-x: clip;
   background: var(--paper);
@@ -69,7 +71,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   height: 100vh;
   height: 100svh;
   overflow: hidden;
-  --fig-h: 68svh;                       /* the couple's height on screen */
+  --fig-h: 60svh;                       /* the couple's height on screen */
   --fig-w: calc(var(--fig-h) * 0.546);  /* the illustration's proportions */
 }
 .window {
@@ -95,11 +97,11 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .couple-figure img { object-fit: contain; object-position: bottom; }
 
 /* the names: on phones they sit above the couple, bride on her side, groom on his */
-.person { position: absolute; top: max(4svh, 22px); width: 46%; }
+.person { position: absolute; top: max(3svh, 18px); width: 43%; }
 .person-bride { left: 4%; text-align: left; }
 .person-groom { right: 4%; text-align: right; }
-.pname { font-family: var(--font-script), cursive; font-weight: 400; font-size: clamp(2.1rem, 9vw, 3.4rem); line-height: 1.05; color: var(--ink); text-wrap: balance; }
-.parents { font-size: clamp(.86rem, 3.4vw, 1.05rem); line-height: 1.45; color: var(--ink-soft); margin-top: 8px; }
+.pname { font-family: var(--font-script), cursive; font-weight: 400; font-size: clamp(1.9rem, 8vw, 3.4rem); line-height: 1.05; color: var(--ink); text-wrap: balance; }
+.parents { font-size: clamp(.9rem, 3.7vw, 1.05rem); line-height: 1.45; color: var(--ink-soft); margin-top: 8px; }
 .parents span { display: block; }
 .relation { font-style: italic; }
 .parent { color: var(--ink); }
@@ -125,7 +127,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   height: 100vh;
   height: 100svh;
   overflow: hidden;
-  --fam-h: min(32svh, calc(64vw / 0.884)); /* each portrait's height (leaves room for the names on narrow phones) */
+  --fam-h: min(29svh, calc(54vw / 0.884)); /* each portrait's height (leaves room for the names on narrow phones) */
   --fam-w: calc(var(--fam-h) * 0.884);  /* the illustrations' proportions */
 }
 .blessing {
@@ -162,15 +164,16 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .fam figcaption {
   position: absolute;
   top: 30%;
-  width: calc(96vw - var(--fam-w) - 6vw);
+  width: calc(100vw - var(--fam-w) - 1vw - 3vw - 3vw);
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-.fam-bride figcaption { left: calc(var(--fam-w) + 4vw); text-align: left; }
-.fam-groom figcaption { right: calc(var(--fam-w) + 4vw); text-align: right; }
+.fam-bride figcaption { left: calc(var(--fam-w) + 3vw); text-align: left; }
+.fam-groom figcaption { right: calc(var(--fam-w) + 3vw); text-align: right; }
 .fam-who { font-family: var(--font-script), cursive; font-size: clamp(1.9rem, 8vw, 2.8rem); line-height: 1.1; color: var(--ink); margin-bottom: 4px; }
-.fam-name { font-size: clamp(.9rem, 3.6vw, 1.1rem); line-height: 1.4; color: var(--ink-soft); }
+.fam-name { font-size: clamp(.84rem, 3.5vw, 1.1rem); line-height: 1.35; color: var(--ink-soft); }
+.fam-name + .fam-name { margin-top: 4px; }
 
 @media (min-width: 900px) and (orientation: landscape) {
   .families { height: 260vh; }
@@ -193,7 +196,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   height: 100vh;
   height: 100svh;
   overflow: hidden;
-  --church-h: 80svh; /* big: on phones the side aisles run off the edges */
+  --church-h: 74svh; /* big: on phones the side aisles run off the edges */
 }
 .h-sky { position: absolute; inset: 0; background: linear-gradient(#fbe1cf, #fdeee5 62%); }
 .h-head { position: absolute; top: max(4svh, 18px); left: 0; right: 0; padding: 0 20px; text-align: center; z-index: 3; }
@@ -234,13 +237,13 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   text-align: center;
 }
 .h-time { font-weight: 300; font-size: clamp(2.4rem, 11vw, 3.8rem); line-height: 1.1; color: var(--ink); font-variant-numeric: lining-nums; }
-.h-church { font-weight: 500; font-size: clamp(1.15rem, 4.8vw, 1.5rem); margin-top: 10px; }
+.h-church { font-weight: 500; font-size: clamp(1.15rem, 4.8vw, 1.5rem); margin-top: 10px; text-wrap: balance; }
 .h-address { font-style: italic; color: var(--ink-soft); max-width: 30ch; }
 .h-actions { display: grid; gap: 12px; margin-top: 24px; width: min(100%, 22rem); }
 
 @media (min-width: 900px) and (orientation: landscape) {
   .holy { height: 320vh; }
-  .hpin { --church-h: 90svh; }
+  .hpin { --church-h: min(80svh, calc(100svh - 175px)); } /* always clears the title and date above it */
   .h-actions { grid-template-columns: 1fr 1fr; width: min(100%, 30rem); }
 }
 
@@ -269,7 +272,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   bottom: max(4svh, 18px);
   width: min(92vw, 30rem);
   margin-left: calc(min(92vw, 30rem) / -2);
-  padding: 22px 22px 24px;
+  padding: 18px 18px 20px;
   text-align: center;
   background: rgba(253, 241, 233, .9);
   border: 1px solid rgba(90, 47, 42, .18);
@@ -278,12 +281,11 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
-.r-card-title { font-family: var(--font-script), cursive; font-size: clamp(2.2rem, 9vw, 3rem); line-height: 1.1; color: var(--ink); }
-.r-card-note { font-style: italic; color: var(--ink-soft); font-size: .98rem; margin-bottom: 6px; }
 .r-time { font-weight: 300; font-size: clamp(2rem, 9vw, 2.8rem); line-height: 1.1; font-variant-numeric: lining-nums; }
-.r-venue { font-weight: 500; font-size: clamp(1.1rem, 4.6vw, 1.4rem); margin-top: 6px; }
+.r-venue { font-weight: 500; font-size: clamp(1.1rem, 4.6vw, 1.4rem); margin-top: 6px; text-wrap: balance; }
 .r-address { font-style: italic; color: var(--ink-soft); }
-.r-actions { display: grid; gap: 10px; margin-top: 18px; }
+.r-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.r-actions .btn { padding-left: 10px; padding-right: 10px; }
 
 @media (min-width: 900px) and (orientation: landscape) {
   .reception { height: 300vh; }
@@ -338,13 +340,13 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   border-radius: 1cqw;
   pointer-events: none;
 }
-.card-kicker { font-family: var(--font-script), cursive; font-size: 5.4cqw; line-height: 1.1; color: var(--ink); }
+.card-kicker { font-family: var(--font-script), cursive; font-size: 6.4cqw; line-height: 1.1; color: var(--ink); }
 .cd { display: flex; justify-content: center; gap: 5cqw; }
-.cd-unit { display: flex; flex-direction: column; align-items: center; min-width: 9cqw; }
-.cd-n { font-weight: 300; font-size: 7.4cqw; line-height: 1; font-variant-numeric: lining-nums tabular-nums; color: var(--ink); }
-.cd-l { font-style: italic; font-size: 2.3cqw; color: var(--ink-soft); }
+.cd-unit { display: flex; flex-direction: column; align-items: center; min-width: 12cqw; }
+.cd-n { font-weight: 300; font-size: 8.6cqw; line-height: 1; font-variant-numeric: lining-nums tabular-nums; color: var(--ink); }
+.cd-l { font-style: italic; font-size: max(3.2cqw, 11px); color: var(--ink-soft); }
 .cd-today { font-size: 4cqw; font-style: italic; }
-.card-by { font-style: italic; font-size: 2.5cqw; color: var(--ink-soft); }
+.card-by { font-style: italic; font-size: max(3.2cqw, 11px); color: var(--ink-soft); }
 .btn.small { min-height: 44px; padding: 0 22px; font-size: .95rem; }
 .card-btn { margin-top: .6cqw; position: relative; z-index: 1; }
 
@@ -382,7 +384,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .w-leaf, .w-rose { transform-box: fill-box; transform-origin: 50% 50%; }
 .close-text {
   position: absolute;
-  inset: 18%;
+  inset: 16%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -390,12 +392,12 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   text-align: center;
   gap: 1.4cqw;
 }
-.close-kicker { font-style: italic; font-weight: 300; font-size: 4.6cqw; line-height: 1.3; color: var(--ink); text-wrap: balance; }
+.close-kicker { font-style: italic; font-weight: 300; font-size: 5cqw; line-height: 1.3; color: var(--ink); text-wrap: balance; }
 .close-names { font-family: var(--font-script), cursive; font-size: 11cqw; line-height: 1.05; color: var(--ink); display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: 2.5cqw; }
 .close-names .ch { display: inline-block; }
 .close-amp { display: inline-block; font-family: var(--font-serif), serif; font-style: italic; font-weight: 300; font-size: .5em; color: var(--rose-bright); }
-.close-date { font-size: 3.6cqw; color: var(--ink); }
-.close-verse { font-style: italic; font-size: 3.2cqw; color: var(--ink-soft); }
+.close-date { font-size: max(4.4cqw, 14px); color: var(--ink); }
+.close-verse { font-style: italic; font-size: max(4.2cqw, 13px); line-height: 1.35; color: var(--ink-soft); }
 .close-verse span { display: block; font-style: normal; font-size: .85em; }
 .close-actions { display: grid; gap: 10px; width: min(92vw, 22rem); }
 
@@ -438,10 +440,52 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   font-weight: 300;
   font-size: clamp(1.7rem, 7vw, 3rem);
   line-height: 1.3;
-  max-width: 16ch;
+  max-width: 19ch;
   text-wrap: balance;
 }
-.verse cite { margin-top: 14px; font-style: normal; color: var(--ink-soft); font-size: 1rem; letter-spacing: .02em; }
+.verse p, .verse cite, .flourish { position: relative; z-index: 1; }
+.verse cite { margin-top: 6px; font-style: normal; color: var(--ink-soft); font-size: 1rem; letter-spacing: .02em; }
+/* the gold flourish under the verse */
+.flourish { width: min(62vw, 260px); height: auto; margin-top: 22px; overflow: visible; }
+
+/* Hearts drifting up the verse page: each rises (outer) while swaying and tilting (inner).
+   Paused until the verse is showing (OpeningScene adds .hearts-run). */
+.hearts { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.heart {
+  position: absolute;
+  left: var(--x);
+  top: 100%;
+  width: var(--size);
+  height: var(--size);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: heart-rise var(--dur) linear var(--delay) infinite paused;
+}
+.heart-sway {
+  display: block;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  animation: heart-sway var(--sdur) ease-in-out var(--delay) infinite alternate paused;
+}
+.heart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.hearts-run .heart, .hearts-run .heart-sway { animation-play-state: running; }
+@keyframes heart-rise {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  12% { opacity: var(--o); }
+  78% { opacity: var(--o); }
+  100% { transform: translate3d(0, calc(-100svh - 120px), 0); opacity: 0; }
+}
+@keyframes heart-sway {
+  from { transform: translateX(calc(var(--sway) * -1)) rotate(calc(var(--rot) * -1)); }
+  to { transform: translateX(var(--sway)) rotate(var(--rot)); }
+}
+/* phones: fewer hearts, so the small screen stays calm */
+@media (max-width: 700px) {
+  .heart { left: var(--xm); }
+  .heart:nth-of-type(n+8) { display: none; }
+}
+
 .stage {
   position: relative;
   flex: none;
@@ -661,6 +705,47 @@ input:focus-visible, textarea:focus-visible { outline: none; border-color: var(-
 .rsvp-done p:not(.rsvp-done-title) { color: var(--ink-soft); margin-top: 6px; }
 .link-btn { margin-top: 18px; min-height: 44px; border: 0; background: none; color: var(--rose); font: inherit; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 
+/* RSVP: the party, one row per person, each with their meal */
+.hint { font-size: .95rem; font-style: italic; color: var(--ink-soft); line-height: 1.45; }
+.party { list-style: none; padding: 0; display: grid; gap: 10px; margin-top: 4px; }
+.guest { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #fffaf6; }
+.guest-you { font-weight: 500; line-height: 44px; padding-left: 4px; }
+.guest-name { display: flex; gap: 8px; align-items: center; }
+.guest-name input { min-height: 46px; }
+.guest-remove { flex: none; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink-soft); font: inherit; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+.guest-remove:hover { background: rgba(90, 47, 42, .07); color: var(--ink); }
+/* "You" and the meal toggle share a row when there's room */
+@media (min-width: 420px) {
+  .guest:first-child { grid-template-columns: 1fr auto; align-items: center; }
+}
+.meal { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; min-width: 210px; }
+.meal label { position: relative; }
+.meal input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.meal span {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 12px;
+  border: 1px solid rgba(90, 47, 42, .3); border-radius: 999px;
+  font-size: .97rem; background: transparent;
+  transition: background-color .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease);
+}
+/* the familiar Indian food marks: a green dot in a square for veg, red for non-veg */
+.meal i { width: 14px; height: 14px; border: 1.6px solid currentColor; border-radius: 2px; display: grid; place-items: center; }
+.meal i::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.meal .meal-veg i { color: #2f8a4a; }
+.meal .meal-nonveg i { color: #b3322b; }
+.meal input:checked + .meal-veg { background: #e9f4ec; border-color: #2f8a4a; color: #1f5e32; }
+.meal input:checked + .meal-nonveg { background: #fbe9e6; border-color: #b3322b; color: #7f231d; }
+.meal input:focus-visible + span { outline: 2px solid var(--rose); outline-offset: 2px; }
+.add-guest {
+  justify-self: start; display: inline-flex; align-items: center; gap: 8px;
+  min-height: 46px; padding: 0 18px; margin-top: 2px;
+  border: 1px dashed rgba(90, 47, 42, .45); border-radius: 999px;
+  background: transparent; color: var(--ink); font: inherit; cursor: pointer;
+}
+.add-guest span { font-size: 1.3rem; line-height: 1; color: var(--rose); }
+.add-guest:hover { background: rgba(90, 47, 42, .05); }
+
+
 /* Footer: the artwork's own bottom edge. */
 .foot {
   position: relative;
@@ -790,6 +875,10 @@ input:focus-visible, textarea:focus-visible { outline: none; border-color: var(-
   .pin { position: relative; flex-direction: column; align-items: center; height: auto; overflow: visible; }
   .pin .stage { height: 100vh; height: 100svh; }
   .verse { position: static; opacity: 1; padding: 96px 28px; }
+  /* the hearts rest where they are instead of floating */
+  .verse { position: relative; }
+  .heart { top: var(--rest); opacity: var(--o); animation: none; }
+  .heart-sway { animation: none; }
   .couple { height: auto; }
   .cpin { position: relative; }
   .families { height: auto; }

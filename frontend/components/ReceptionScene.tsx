@@ -30,8 +30,6 @@ export default function ReceptionScene() {
       // the room warms from dusk to gold
       .add('.r-dim', { opacity: [1, 0], duration: 360, ease: 'inOutSine' }, 200)
       .add('.rose-arch', { scale: [0.94, 1], opacity: [0.55, 1], duration: 300 }, 340)
-      // the heading introduces the dim room, then steps aside before the couple arrive
-      .add('.r-head', { opacity: [1, 0], translateY: [0, -24], duration: 140, ease: 'inQuad' }, 330)
       // and the couple step into the arch as the room lights up
       .add('.r-couple', { opacity: [0, 1], translateY: [40, 0], duration: 280 }, 400)
       // depth: the farther the layer, the less it moves
@@ -61,8 +59,6 @@ export default function ReceptionScene() {
         </header>
 
         <div className="r-card">
-          <p className="r-card-title" aria-hidden="true">The Reception</p>
-          <p className="r-card-note">{reception.note}</p>
           <p className="r-time">{reception.time}</p>
           <p className="r-venue">{reception.name}</p>
           <p className="r-address">{reception.address}</p>

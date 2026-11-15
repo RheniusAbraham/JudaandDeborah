@@ -12,6 +12,8 @@ import { wedding } from '@/lib/wedding';
 import { useScrollTimeline } from '@/lib/useScrollTimeline';
 
 const first = (name: string) => name.split(' ')[0];
+// keep titles and initials with the name after them, so a line never ends on "& Mrs."
+const glue = (s: string) => s.replace(/(&|Late|Mrs?\.|[A-Z]\.) /g, '$1 ');
 
 export default function FamiliesScene() {
   const root = useRef<HTMLElement>(null);
@@ -21,8 +23,8 @@ export default function FamiliesScene() {
       // starting states for anything that only appears later
       .set('.fam-glow', { opacity: 0, scale: 0.7 }, 0)
       .set('.fam-img', { opacity: 0, translateY: '28%' }, 0)
-      .set('.fam-bride figcaption', { opacity: 0, translateX: '-32px' }, 0)
-      .set('.fam-groom figcaption', { opacity: 0, translateX: '32px' }, 0)
+      .set('.fam-bride figcaption', { opacity: 0, translateX: '32px' }, 0)
+      .set('.fam-groom figcaption', { opacity: 0, translateX: '-32px' }, 0)
       .add('.blessing', { opacity: [0, 1], translateY: [18, 0], duration: 240 }, 0)
       // back layer: soft glows, drifting slowest
       .add('.fam-bride .fam-glow', { opacity: [0, 1], scale: [0.7, 1], duration: 340 }, 60)
@@ -33,8 +35,8 @@ export default function FamiliesScene() {
       .add('.fam-groom .fam-img', { translateY: ['28%', '0%'], opacity: [0, 1], duration: 340 }, 220)
       .add('.fam-img', { translateY: ['0%', '-3%'], duration: 440, ease: 'linear' }, 560)
       // their names arrive from the outside edges
-      .add('.fam-bride figcaption', { translateX: ['-32px', '0px'], opacity: [0, 1], duration: 240 }, 330)
-      .add('.fam-groom figcaption', { translateX: ['32px', '0px'], opacity: [0, 1], duration: 240 }, 450),
+      .add('.fam-bride figcaption', { translateX: ['32px', '0px'], opacity: [0, 1], duration: 240 }, 330)
+      .add('.fam-groom figcaption', { translateX: ['-32px', '0px'], opacity: [0, 1], duration: 240 }, 450),
   );
 
   const families = [
@@ -67,8 +69,7 @@ export default function FamiliesScene() {
               <span className="fam-who">{f.who}’s parents</span>
               {f.parents.map((p, i) => (
                 <span key={p} className="fam-name">
-                  {i > 0 ? '& ' : ''}
-                  {p}
+                  {glue(`${i > 0 ? '& ' : ''}${p}`)}
                 </span>
               ))}
             </figcaption>

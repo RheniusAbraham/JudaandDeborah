@@ -17,7 +17,9 @@ export const wedding = {
   },
 
   // The day. The countdown runs to the start of the ceremony (local time).
-  start: '2027-01-04T15:00:00',
+  // Times carry India's offset (+05:30), so guests abroad see the right countdown and
+  // calendar time.
+  start: '2027-01-04T15:00:00+05:30',
   dateLabel: 'Monday, 4 January 2027',
   footerDate: '4 January 2027',
 
@@ -26,8 +28,8 @@ export const wedding = {
     name: 'City Harvest AG Church',
     address: 'HBR Layout, Bengaluru',
     time: '3:00 PM',
-    start: '2027-01-04T15:00:00',
-    end: '2027-01-04T17:00:00',
+    start: '2027-01-04T15:00:00+05:30',
+    end: '2027-01-04T17:00:00+05:30',
     // opens this exact place in Google Maps (from the map link shared for the church)
     maps: 'https://maps.google.com/?cid=15349422656933301550',
   },
@@ -38,8 +40,8 @@ export const wedding = {
     address: 'Bengaluru',
     time: '6:30 PM',
     note: 'Dinner, music and dancing',
-    start: '2027-01-04T18:30:00',
-    end: '2027-01-04T22:30:00',
+    start: '2027-01-04T18:30:00+05:30',
+    end: '2027-01-04T22:30:00+05:30',
     // opens this exact place in Google Maps (from the map link shared for the hall)
     maps: 'https://maps.google.com/?cid=12115308714572026884',
   },
@@ -61,12 +63,14 @@ export function mapsUrl(p: Place) {
 
 /** A Google Calendar link for one event of the day. */
 export function calendarUrl(title: string, e: Timed) {
-  const fmt = (iso: string) => iso.replace(/[-:]/g, '');
+  // in UTC (the trailing Z), so the event lands at the right moment in any guest's calendar
+  const fmt = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: title,
     dates: `${fmt(e.start)}/${fmt(e.end)}`,
     location: `${e.name}, ${e.address}`,
+    ctz: 'Asia/Kolkata',
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }

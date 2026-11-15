@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  VW, VH, CURTAIN, rng, curtainShape, swagShape, swagHemY, roseShape, leafShape, stem, stemPoints,
+  VW, VH, CURTAIN, rng, curtainShape, swagShape, swagHemY, roseShape, leafShape, sprigShape, stem, stemPoints,
   type Disp,
 } from '@/lib/arch/geom';
 import { Tap, breeze, freedom } from '@/lib/arch/sway';
@@ -129,6 +129,21 @@ function Defs() {
           <stop offset=".55" stopColor="#a9c3b2" />
           <stop offset="1" stopColor="#c3d6c9" />
         </linearGradient>
+        <linearGradient id="a-leaf2" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#3c5a4c" />
+          <stop offset=".6" stopColor="#56786a" />
+          <stop offset="1" stopColor="#6f9283" />
+        </linearGradient>
+        <linearGradient id="a-leafLit2" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#678a7b" />
+          <stop offset=".55" stopColor="#90b2a3" />
+          <stop offset="1" stopColor="#b2cdc1" />
+        </linearGradient>
+        <radialGradient id="a-euc2" cx=".35" cy=".32" r=".75">
+          <stop offset="0" stopColor="#c9d9d6" />
+          <stop offset=".45" stopColor="#93ada9" />
+          <stop offset="1" stopColor="#5d7a75" />
+        </radialGradient>
         <radialGradient id="a-euc" cx=".35" cy=".32" r=".75">
           <stop offset="0" stopColor="#d3e1d8" />
           <stop offset=".45" stopColor="#a2b9ab" />
@@ -152,61 +167,106 @@ function Defs() {
 
 /* --------------------------------------------------------------- botanicals */
 
-/** A layered rose: outer opened petals, a cupped middle ring, a tight swirled bud. */
+/** A layered rose: four rings of cupped petals, each shaded at the base, veined, with a
+ *  paler rolled-back lip, around a tight swirled bud. */
 export function Rose({ x, y, r, tone, seed, rot = 0 }: { x: number; y: number; r: number; tone: Tone; seed: number; rot?: number }) {
   const s = useMemo(() => roseShape(seed), [seed]);
   const fill = `url(#a-rose-${tone})`;
   return (
     <g transform={`translate(${q(x)} ${q(y)}) rotate(${q(rot)}) scale(${q(r)})`}>
-      {/* soft contact shadow so the rose sits on the foliage */}
-      <circle r={1.08} cx={0.06} cy={0.1} fill="#5a2f2a" fillOpacity={0.14} />
-      {s.petals.map((ring, ri) => (
+      {/* soft contact shadow, two steps so its edge fades, to seat the rose in the foliage */}
+      <circle r={1.03} cx={0.05} cy={0.09} fill={INK} fillOpacity={0.1} />
+      {s.rings.map((ring, ri) => (
         <g key={ri}>
-          {ring.map((p, i) => (
-            <g key={i} transform={p.transform}>
-              <path d={p.body} fill={fill} stroke={INK} strokeOpacity={ri === 0 ? 0.6 : 0.45} strokeWidth={1.2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
-              <path d={p.lip} fill="none" stroke="#ffffff" strokeOpacity={ri === 2 ? 0.35 : 0.55} strokeWidth={1.4} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
-            </g>
+          {ring.petals.map((p, i) => (
+            <path key={i} d={p.body} transform={p.transform} fill={fill} stroke={INK} strokeOpacity={ri === 0 ? 0.6 : 0.42} strokeWidth={1.2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
           ))}
+          <path d={ring.shade} fill={INK} fillOpacity={0.1 + ri * 0.03} />
+          <path d={ring.veins} fill="none" stroke={INK} strokeOpacity={0.14} strokeWidth={0.8} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+          <path d={ring.turn} fill="#fff7f2" fillOpacity={ri < 2 ? 0.26 : 0.12} />
+          <path d={ring.lip} fill="none" stroke="#ffffff" strokeOpacity={ri < 2 ? 0.55 : 0.3} strokeWidth={1.2} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+          <path d={ring.sheen} fill="none" stroke="#ffffff" strokeOpacity={0.22} strokeWidth={1.6} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
         </g>
       ))}
-      <circle r={0.2} fill={fill} />
+      <circle r={0.21} fill={fill} />
+      <circle r={0.21} fill={INK} fillOpacity={0.18} />
       <path d={s.swirl} fill="none" stroke="#5e1726" strokeOpacity={0.75} strokeWidth={1.3} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+      <path d={s.glint} fill="none" stroke="#ffffff" strokeOpacity={0.55} strokeWidth={1.4} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
     </g>
   );
 }
 
-/** A leaf with a lit upper half, a shaded lower half, a midrib and side veins. */
-export function Leaf({ x, y, len, a,w = 0.32 }: { x: number; y: number; len: number; a: number; w?: number }) {
-  const s = leafShape(len, len * w);
+/** A closed rosebud on a short stem, cupped in curling green sepals. Points up at rot 0. */
+export function Bud({ x, y, r, tone, rot = 0 }: { x: number; y: number; r: number; tone: Tone; rot?: number }) {
+  const fill = `url(#a-rose-${tone})`;
   return (
-    <g transform={`translate(${q(x)} ${q(y)}) rotate(${q(a)})`}>
-      <path d={s.body} fill="url(#a-leaf)" stroke={INK} strokeWidth={1.3} strokeOpacity={0.55} strokeLinejoin="round" />
-      <path d={s.lit} fill="url(#a-leafLit)" />
-      <path d={s.veins} fill="none" stroke="#3f5a4b" strokeWidth={0.9} strokeOpacity={0.4} strokeLinecap="round" />
-      <path d={s.rib} fill="none" stroke="#e9f1ec" strokeWidth={1.2} strokeOpacity={0.55} strokeLinecap="round" />
+    <g transform={`translate(${q(x)} ${q(y)}) rotate(${q(rot)}) scale(${q(r)})`}>
+      <path d="M0 0.05Q0.04 0.4 -0.02 0.75" fill="none" stroke="#5e7566" strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+      <path d="M0 0C-0.46 -0.16 -0.42 -0.76 0 -1C0.42 -0.76 0.46 -0.16 0 0Z" fill={fill} stroke={INK} strokeOpacity={0.5} strokeWidth={1.1} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      <path d="M0.05 -0.95C-0.08 -0.7 0.02 -0.4 0.3 -0.3" fill="none" stroke={INK} strokeOpacity={0.45} strokeWidth={1} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+      {/* the wrapping front petal */}
+      <path d="M-0.36 -0.3C-0.32 -0.72 0.02 -0.94 0.1 -0.97C0.0 -0.7 0.16 -0.42 0.38 -0.3C0.2 -0.04 -0.2 -0.04 -0.36 -0.3Z" fill={fill} stroke={INK} strokeOpacity={0.5} strokeWidth={1.1} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      <path d="M-0.24 -0.36C-0.2 -0.62 -0.04 -0.8 0.04 -0.86" fill="none" stroke="#ffffff" strokeOpacity={0.55} strokeWidth={1.4} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+      {/* sepals curling up around it */}
+      <path d="M0 0.02C-0.28 -0.02 -0.5 -0.26 -0.56 -0.58C-0.4 -0.36 -0.22 -0.22 0.02 -0.1Z" fill="url(#a-leaf)" stroke={INK} strokeOpacity={0.45} strokeWidth={0.9} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      <path d="M0 0.02C0.28 -0.02 0.5 -0.26 0.56 -0.58C0.4 -0.36 0.22 -0.22 -0.02 -0.1Z" fill="url(#a-leaf)" stroke={INK} strokeOpacity={0.45} strokeWidth={0.9} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      <path d="M-0.06 0.02C-0.12 -0.14 -0.06 -0.3 0.06 -0.42C0.08 -0.26 0.1 -0.12 0.06 0.02Z" fill="url(#a-leafLit)" stroke={INK} strokeOpacity={0.4} strokeWidth={0.8} vectorEffect="non-scaling-stroke" />
+      <ellipse cy={0.06} rx={0.13} ry={0.09} fill="url(#a-leaf)" stroke={INK} strokeOpacity={0.4} strokeWidth={0.8} vectorEffect="non-scaling-stroke" />
     </g>
   );
 }
 
-/** A round eucalyptus leaf, lit from the upper left. */
-function Euc({ x, y, r }: { x: number; y: number; r: number }) {
+/** A sprig of baby's breath, drawn in three merged paths however many blossoms it has. */
+export function Sprig({ x, y, a, len, seed }: { x: number; y: number; a: number; len: number; seed: number }) {
+  const s = useMemo(() => sprigShape(x, y, a, len, seed), [x, y, a, len, seed]);
   return (
     <g>
-      <circle cx={q(x)} cy={q(y)} r={q(r)} fill="url(#a-euc)" stroke={INK} strokeWidth={1.1} strokeOpacity={0.5} />
-      <path d={`M${q(x - r * 0.55)} ${q(y)}Q${q(x)} ${q(y - r * 0.18)} ${q(x + r * 0.55)} ${q(y)}`} fill="none" stroke="#5f7a6b" strokeWidth={0.9} strokeOpacity={0.45} />
+      <path d={s.stems} fill="none" stroke="#7d9483" strokeWidth={1.4} strokeLinecap="round" />
+      <path d={s.dots} fill="#fffaf4" stroke={INK} strokeOpacity={0.32} strokeWidth={0.9} />
+      <path d={s.hearts} fill="#ecc9a0" />
     </g>
   );
 }
 
-/** A trailing eucalyptus stem with round leaves on alternating sides. */
+/** A serrated leaf with a lit upper half, a tapered midrib, light veins and a stalk.
+ *  Every third leaf is a deeper, cooler green so the greenery isn't one flat colour. */
+export function Leaf({ x, y, len, a, w = 0.32 }: { x: number; y: number; len: number; a: number; w?: number }) {
+  const s = useMemo(() => leafShape(len, len * w), [len, w]);
+  const deep = Math.round(x * 7 + y * 3) % 3 === 0;
+  return (
+    <g transform={`translate(${q(x)} ${q(y)}) rotate(${q(a)})`}>
+      <path d={s.stalk} fill="none" stroke="#4f6a5a" strokeWidth={2} strokeLinecap="round" />
+      <path d={s.body} fill={deep ? 'url(#a-leaf2)' : 'url(#a-leaf)'} stroke={INK} strokeWidth={1.2} strokeOpacity={0.5} strokeLinejoin="round" />
+      <path d={s.lit} fill={deep ? 'url(#a-leafLit2)' : 'url(#a-leafLit)'} />
+      <path d={s.gleam} fill="none" stroke="#f4faf6" strokeWidth={1.6} strokeOpacity={0.35} strokeLinecap="round" />
+      <path d={s.veins} fill="none" stroke="#e3eee7" strokeWidth={0.9} strokeOpacity={0.5} strokeLinecap="round" />
+      <path d={s.crease} fill="none" stroke="#2f4a3c" strokeWidth={1} strokeOpacity={0.3} strokeLinecap="round" />
+      <path d={s.rib} fill="#eef5f0" fillOpacity={0.75} />
+    </g>
+  );
+}
+
+/** A round eucalyptus leaf with a powdery bloom, lit from the upper left. */
+function Euc({ x, y, r, sx, sy }: { x: number; y: number; r: number; sx: number; sy: number }) {
+  const deep = Math.round(x + y) % 3 === 0;
+  return (
+    <g>
+      <path d={`M${q(sx)} ${q(sy)}L${q(x)} ${q(y)}`} stroke="#5e7566" strokeWidth={1.3} strokeLinecap="round" />
+      <circle cx={q(x)} cy={q(y)} r={q(r)} fill={deep ? 'url(#a-euc2)' : 'url(#a-euc)'} stroke={INK} strokeWidth={1.1} strokeOpacity={0.5} />
+      <ellipse cx={q(x - r * 0.32)} cy={q(y - r * 0.34)} rx={q(r * 0.36)} ry={q(r * 0.2)} transform={`rotate(-35 ${q(x - r * 0.32)} ${q(y - r * 0.34)})`} fill="#ffffff" fillOpacity={0.35} />
+      <path d={`M${q(x - r * 0.62)} ${q(y + r * 0.05)}Q${q(x)} ${q(y - r * 0.16)} ${q(x + r * 0.62)} ${q(y + r * 0.05)}`} fill="none" stroke="#5f7a6b" strokeWidth={0.9} strokeOpacity={0.45} />
+    </g>
+  );
+}
+
+/** A trailing eucalyptus stem with round leaves on alternating sides, each on its own stalk. */
 export function Trail({ a, b, bend, n, r }: { a: [number, number]; b: [number, number]; bend: number; n: number; r: number }) {
   const pts = stemPoints(a, b, bend, n);
   return (
     <g>
       <path d={stem(a, b, bend)} fill="none" stroke="#5e7566" strokeWidth={2.4} strokeLinecap="round" />
       {pts.map(([x, y], i) => (
-        <Euc key={i} x={x + (i % 2 ? r * 0.9 : -r * 0.9)} y={y} r={r * (1 - i / (n * 2.2))} />
+        <Euc key={i} x={x + (i % 2 ? r * 0.95 : -r * 0.95)} y={y + r * 0.15} r={r * (1 - i / (n * 2.2))} sx={x} sy={y} />
       ))}
     </g>
   );
@@ -330,14 +390,19 @@ function FlowerBed() {
     const buds = [];
     for (let x = 64; x <= VW; x += 128) {
       const xx = x + (rand() - 0.5) * 40;
-      buds.push({ x: q(xx), y: q(VH - H(xx) * 0.5), r: q(14 + rand() * 6), seed: 500 + buds.length, rot: q(rand() * 360) });
+      buds.push({ x: q(xx), y: q(VH - H(xx) * 0.74), r: q(40 + lift(xx) * 18 + rand() * 8), tone: tones[(buds.length + 1) % 6], rot: q((rand() - 0.5) * 50) });
     }
     const front = [];
     for (let x = 0; x <= VW + 20; x += 118) {
       const xx = x + (rand() - 0.5) * 30;
       front.push({ x: q(xx), y: q(VH + 8 - H(xx) * 0.3), r: q(36 + lift(xx) * 26 + rand() * 8), tone: tones[(front.length + 2) % 6], seed: 600 + front.length, rot: q(rand() * 360) });
     }
-    return { leaves, back, buds, front };
+    const sprigs = [];
+    for (let x = 30; x <= VW; x += 150) {
+      const xx = x + (rand() - 0.5) * 50;
+      sprigs.push({ x: q(xx), y: q(VH - H(xx) * 0.45), a: q(-90 + (rand() - 0.5) * 60), len: q(70 + lift(xx) * 70 + rand() * 20), seed: 700 + sprigs.length });
+    }
+    return { leaves, back, buds, front, sprigs };
   }, []);
   return (
     <g>
@@ -349,11 +414,14 @@ function FlowerBed() {
       {bed.leaves.map((l, i) => (
         <Leaf key={i} x={l.x} y={l.y} len={l.len} a={l.a} />
       ))}
-      {bed.back.map((r, i) => (
-        <Rose key={i} x={r.x} y={r.y} r={r.r} tone={r.tone} seed={r.seed} rot={r.rot} />
+      {bed.sprigs.map((p, i) => (
+        <Sprig key={i} x={p.x} y={p.y} a={p.a} len={p.len} seed={p.seed} />
       ))}
       {bed.buds.map((b, i) => (
-        <Rose key={i} x={b.x} y={b.y} r={b.r} tone="peach" seed={b.seed} rot={b.rot} />
+        <Bud key={i} x={b.x} y={b.y} r={b.r} tone={b.tone} rot={b.rot} />
+      ))}
+      {bed.back.map((r, i) => (
+        <Rose key={i} x={r.x} y={r.y} r={r.r} tone={r.tone} seed={r.seed} rot={r.rot} />
       ))}
       {bed.front.map((r, i) => (
         <Rose key={i} x={r.x} y={r.y} r={r.r} tone={r.tone} seed={r.seed} rot={r.rot} />
@@ -375,6 +443,9 @@ function TieBack() {
     <g>
       <Trail a={[110, 1050]} b={[78, 1290]} bend={-16} n={7} r={15} />
       <Foliage cx={100} cy={1010} n={12} r0={70} r1={170} len={66} seed={21} />
+      <Sprig x={110} y={990} a={-20} len={92} seed={41} />
+      <Sprig x={90} y={1080} a={150} len={70} seed={42} />
+      <Bud x={150} y={872} r={40} tone="coral" rot={35} />
       <Rose x={78} y={892} r={30} tone="peach" seed={31} />
       <Rose x={124} y={950} r={36} tone="pink" seed={32} rot={30} />
       <Rose x={92} y={1018} r={46} tone="pink" seed={33} />
@@ -529,22 +600,43 @@ function Curtain({ side }: { side: 'left' | 'right' }) {
   );
 }
 
-function Swag({ x0, x1, depth, bands }: { x0: number; x1: number; depth: number; bands: number }) {
+function Swag({ x0, x1, depth, bands, shadow }: { x0: number; x1: number; depth: number; bands: number; shadow?: boolean }) {
   const s = useMemo(() => swagShape(x0, x1, 44, depth, bands), [x0, x1, depth, bands]);
   const id = `a-swagclip-${x0}`;
   return (
     <g>
+      {shadow && (
+        // a soft cast shadow on whatever hangs behind (two offsets fake the blur)
+        <g fill="#7a2f28" style={{ pointerEvents: 'none' }}>
+          <path d={s.outline + s.lace} transform="translate(3 7)" fillOpacity={0.09} />
+          <path d={s.outline + s.lace} transform="translate(7 15)" fillOpacity={0.07} />
+        </g>
+      )}
       <clipPath id={id}>
-        {s.bands.map((d, i) => (
-          <path key={i} d={d} />
-        ))}
+        <path d={s.outline} />
       </clipPath>
       {s.bands.map((d, i) => (
         <path key={i} d={d} fill={i % 2 ? 'url(#a-swagB)' : 'url(#a-swagA)'} />
       ))}
       <g clipPath={`url(#${id})`}>
+        {/* light on the belly of each fold, shade where it turns under */}
+        {s.lights.map((d, i) => (
+          <path key={`l${i}`} d={d} fill="#fff6ef" fillOpacity={0.32} />
+        ))}
+        {s.shades.map((d, i) => (
+          <path key={`s${i}`} d={d} fill="#9a4637" fillOpacity={i % 2 ? 0.13 : 0.1} />
+        ))}
+        {s.pleats.map((d, i) => (
+          <path key={`p${i}`} d={d} fill="#8a3b2f" fillOpacity={0.16} />
+        ))}
+        {s.pleatLights.map((d, i) => (
+          <path key={`q${i}`} d={d} fill="#fff6ef" fillOpacity={0.35} />
+        ))}
         {s.folds.map((d, i) => (
-          <path key={i} d={d} fill="none" stroke="#7a2f28" strokeWidth={14} strokeOpacity={0.1} />
+          <path key={`f${i}`} d={d} fill="none" stroke="#7a2f28" strokeWidth={14} strokeOpacity={0.1} />
+        ))}
+        {s.ridges.map((d, i) => (
+          <path key={`r${i}`} d={d} fill="none" stroke="#ffffff" strokeWidth={2.2} strokeOpacity={0.45} strokeLinecap="round" />
         ))}
         <rect x={x0} y={0} width={x1 - x0} height={depth + 80} fill="url(#a-weave)" />
         <rect x={x0} y={0} width={x1 - x0} height={depth + 80} fill="url(#a-speckle)" />
@@ -552,7 +644,38 @@ function Swag({ x0, x1, depth, bands }: { x0: number; x1: number; depth: number;
       {s.folds.map((d, i) => (
         <path key={i} d={d} fill="none" stroke={INK} strokeWidth={1.8} strokeOpacity={0.4} strokeLinecap="round" />
       ))}
-      <path d={s.hem} fill="none" stroke={INK} strokeWidth={2.8} strokeOpacity={0.75} strokeLinecap="round" />
+      {/* lace trim along the hem */}
+      <path d={s.lace} fill="#fff4ec" stroke={INK} strokeWidth={1.3} strokeOpacity={0.55} strokeLinejoin="round" />
+      <path d={s.laceInner} fill="none" stroke="#c98a78" strokeWidth={1} strokeOpacity={0.8} strokeDasharray="3 3" />
+      {s.eyelets.map(([x, y], i) => (
+        <circle key={i} cx={Math.round(x * 10) / 10} cy={Math.round(y * 10) / 10} r={2.8} fill="#e7a593" stroke={INK} strokeWidth={0.6} strokeOpacity={0.4} />
+      ))}
+      {/* gold piping, then the inked edge */}
+      <path d={s.hem} fill="none" stroke="#d9ae74" strokeWidth={6} />
+      <path d={s.hem} fill="none" stroke="#fbe3b8" strokeWidth={1.6} strokeOpacity={0.9} transform="translate(0 -1.2)" />
+      <path d={s.hem} fill="none" stroke={INK} strokeWidth={2.4} strokeOpacity={0.7} strokeLinecap="round" transform="translate(0 3)" />
+    </g>
+  );
+}
+
+/** Fabric gathered and wrapped over the rod where a swag is pinned. */
+function Gather({ x }: { x: number }) {
+  return (
+    <g>
+      <path
+        d={`M${x - 26} 38C${x - 34} 70 ${x - 22} 104 ${x} 118C${x + 22} 104 ${x + 34} 70 ${x + 26} 38Z`}
+        fill="url(#a-swagB)"
+        stroke={INK}
+        strokeWidth={2.2}
+        strokeOpacity={0.7}
+        strokeLinejoin="round"
+      />
+      <path d={`M${x - 14} 46Q${x - 18} 80 ${x - 5} 108`} fill="none" stroke={INK} strokeWidth={1.4} strokeOpacity={0.45} />
+      <path d={`M${x + 13} 46Q${x + 17} 80 ${x + 5} 108`} fill="none" stroke={INK} strokeWidth={1.4} strokeOpacity={0.45} />
+      <path d={`M${x - 3} 48Q${x - 5} 78 ${x} 102`} fill="none" stroke="#fff6ef" strokeWidth={3} strokeOpacity={0.6} strokeLinecap="round" />
+      <rect x={x - 30} y={8} width={60} height={38} rx={12} fill="url(#a-swagA)" stroke={INK} strokeWidth={2.2} strokeOpacity={0.7} />
+      <path d={`M${x - 18} 12L${x - 6} 42M${x - 4} 10L${x + 8} 44M${x + 10} 10L${x + 22} 42`} stroke={INK} strokeWidth={1.3} strokeOpacity={0.4} fill="none" />
+      <path d={`M${x - 24} 20Q${x} 14 ${x + 24} 20`} stroke="#fff6ef" strokeWidth={2.4} strokeOpacity={0.6} fill="none" strokeLinecap="round" />
     </g>
   );
 }
@@ -577,11 +700,18 @@ function Top() {
       <Tail x={300} dir={1} />
       <Tail x={1340} dir={-1} />
       <Swag x0={300} x1={880} depth={250} bands={4} />
-      <Swag x0={540} x1={1340} depth={330} bands={5} />
+      <Swag x0={540} x1={1340} depth={330} bands={5} shadow />
+      <Gather x={540} />
+      <Gather x={1340} />
       {/* the rose cluster where the swag meets the rod */}
       <Trail a={[120, 300]} b={[64, 780]} bend={-34} n={13} r={19} />
       <Trail a={[210, 320]} b={[214, 610]} bend={26} n={7} r={16} />
       <Foliage cx={230} cy={170} n={22} r0={160} r1={330} len={88} seed={7} />
+      <Sprig x={330} y={110} a={25} len={150} seed={51} />
+      <Sprig x={150} y={210} a={115} len={120} seed={52} />
+      <Sprig x={60} y={150} a={165} len={70} seed={53} />
+      <Bud x={480} y={170} r={60} tone="pink" rot={140} />
+      <Bud x={290} y={330} r={52} tone="peach" rot={165} />
       <Leaf x={420} y={70} len={80} a={-20} />
       <Leaf x={470} y={96} len={70} a={20} />
       <Leaf x={380} y={140} len={66} a={50} />

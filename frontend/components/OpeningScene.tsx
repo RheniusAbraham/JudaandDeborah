@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { createScope, createTimeline, stagger, type Timeline } from 'animejs';
 import ArchArt from './ArchArt';
+import { FloatingHearts, Flourish } from './VerseHearts';
 import { wedding } from '@/lib/wedding';
 
 const TL = 1000; // the scroll timeline runs in "progress milliseconds": 0..1000
@@ -58,13 +59,23 @@ export default function OpeningScene() {
         .add(['.layer-left', '.layer-right', '.layer-top', '.layer-bottom'], { scale: [1, 3.4], duration: 820 }, 0)
         .add(['.layer-left', '.layer-right', '.layer-top', '.layer-bottom'], { opacity: [1, 0], duration: 200, ease: 'linear' }, 600)
         // and the verse is waiting on the wall beyond
-        .add('.verse', { opacity: [0, 1], scale: [0.92, 1], duration: 230, ease: 'outQuad' }, 720);
+        .add('.verse', { opacity: [0, 1], scale: [0.92, 1], duration: 300, ease: 'outQuad' }, 480);
     });
 
     let target = 0;
     let shown = 0;
     let raf: number | null = null;
     let last = 0;
+
+    // the hearts float only while the verse is showing and the scene is on screen
+    const verse = el.querySelector('.verse');
+    let inView = true;
+    const syncHearts = () => verse?.classList.toggle('hearts-run', inView && shown > 0.5);
+    const io = new IntersectionObserver(([e]) => {
+      inView = e.isIntersecting;
+      syncHearts();
+    });
+    io.observe(el);
 
     const progress = () => {
       const r = el.getBoundingClientRect();
@@ -83,6 +94,7 @@ export default function OpeningScene() {
         raf = requestAnimationFrame(tick);
       }
       s.tl?.seek(shown * TL);
+      syncHearts();
     };
     const onScroll = () => {
       const p = progress();
@@ -94,12 +106,14 @@ export default function OpeningScene() {
 
     target = shown = progress();
     s.tl?.seek(shown * TL);
+    syncHearts();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       if (raf !== null) cancelAnimationFrame(raf);
+      io.disconnect();
       scope.revert();
     };
   }, []);
@@ -130,8 +144,10 @@ export default function OpeningScene() {
         </div>
 
         <blockquote className="verse">
-          <p>A cord of three strands is not quickly broken.</p>
-          <cite>Ecclesiastes 4:12</cite>
+          <FloatingHearts />
+          <p>The Lord has done great things for us, and we are filled with joy.</p>
+          <Flourish />
+          <cite>Psalm 126:3</cite>
         </blockquote>
       </div>
     </section>

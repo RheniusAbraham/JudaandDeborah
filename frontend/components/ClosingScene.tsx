@@ -126,12 +126,12 @@ export default function ClosingScene() {
             <Wreath />
             <div className="close-text">
               <h2 id="close-title" className="close-kicker">
-                We canâ€™t wait to celebrate with you
+                We can’t wait to celebrate with you
               </h2>
               <Names />
               <p className="close-date">{wedding.dateLabel}</p>
               <p className="close-verse">
-                â€œLove never fails.â€ <span>1 Corinthians 13:8</span>
+                “Love never fails.” <span>1 Corinthians 13:8</span>
               </p>
             </div>
           </div>
