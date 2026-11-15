@@ -5,14 +5,19 @@
 // tiled roofs, buttresses and pinnacles, a tall tower and tiled spire, a traceried rose window,
 // pointed stained-glass windows, and a deep doorway of receding carved arches.
 //
-// Parts the scene animates carry class names:
-//   .door-l / .door-r (swing open), .bell (swings), .win-glow (glass lights up), .rays (light spills out).
+// Parts the scene animates are each lifted into their own Piece (see Piece.tsx), so the GPU moves
+// them without repainting the church:
+//   .door-l / .door-r (swing open), .bell (swings), .win-glow (glass lights up), .rays (light
+//   spills out), .urn-leaf / .urn-rose (bloom).
 //
 // Drawing space: x 0..1400, y -230..1540 (ground at 1500).
 
 import { useMemo, type ReactElement } from 'react';
 import { rng } from '@/lib/arch/geom';
 import { Rose, Leaf } from './ArchArt';
+import Piece, { leafBox, roseBox, type Box } from './Piece';
+
+const FRAME: Box = [0, -230, 1400, 1770];
 
 const INK = '#5a2f2a';
 const STONE = ['#f8e0d1', '#f4d5c3', '#efcbb7', '#f6dacb', '#ebc6b1', '#f2d0bd'];
@@ -130,7 +135,6 @@ function Glass({ id, d, x0, x1, y0, y1, seed }: { id: string; d: string; x0: num
           <path key={i} d={p.d} fill={p.c} fillOpacity={0.85} stroke={INK} strokeWidth={1.4} strokeOpacity={0.45} />
         ))}
         <path d={`M${x0 + 8} ${y1}L${x0 + (x1 - x0) * 0.7} ${y0 - 120}`} stroke="#ffffff" strokeOpacity={0.35} strokeWidth={10} />
-        <path className="win-glow" d={d} fill="url(#ch-glow)" opacity={0} />
       </g>
     </g>
   );
@@ -188,7 +192,6 @@ function RoseWindow({ cx, cy, r }: { cx: number; cy: number; r: number }) {
       ))}
       <circle cx={cx} cy={cy} r={r * 0.36} fill="none" stroke="#f4d5c3" strokeWidth={9} />
       <circle cx={cx} cy={cy} r={r * 0.12} fill="#f4c46e" stroke={INK} strokeWidth={1.8} strokeOpacity={0.6} />
-      <circle className="win-glow" cx={cx} cy={cy} r={r} fill="url(#ch-glow)" opacity={0} />
       <circle cx={cx} cy={cy} r={r} fill="none" stroke={INK} strokeWidth={3.4} strokeOpacity={0.85} />
       <path d={`M${cx - r * 0.6} ${cy + r * 0.5}L${cx + r * 0.2} ${cy - r * 0.7}`} stroke="#ffffff" strokeOpacity={0.3} strokeWidth={12} strokeLinecap="round" />
     </g>
@@ -202,7 +205,7 @@ function DoorLeaf({ side, x, y, w, h }: { side: 'l' | 'r'; x: number; y: number;
   const strap = (yy: number) =>
     `M${hinge} ${yy}H${hinge + dir * w * 0.72}c${dir * 14} 0 ${dir * 20} -12 ${dir * 10} -20c${-dir * 8} -6 ${-dir * 16} 2 ${-dir * 12} 8`;
   return (
-    <g className={`door-${side}`}>
+    <g>
       <rect x={x} y={y} width={w} height={h} fill="url(#ch-wood)" stroke={INK} strokeWidth={2.6} strokeOpacity={0.85} />
       {Array.from({ length: 5 }, (_, i) => (
         <path key={i} d={`M${x + (w / 5) * (i + 1)} ${y + 4}V${y + h - 4}`} stroke="#4d2c1d" strokeOpacity={0.35} strokeWidth={2} />
@@ -242,8 +245,6 @@ function Doorway() {
       <rect x={cx - w / 2 - 4} y={lintel - 4} width={w + 8} height={22} fill="#f2cdb9" stroke={INK} strokeWidth={2} strokeOpacity={0.7} />
       {/* the warm light inside, revealed as the doors open */}
       <rect x={cx - w / 2} y={lintel + 18} width={w} height={bottom - lintel - 18} fill="url(#ch-inside)" />
-      <DoorLeaf side="l" x={cx - w / 2} y={lintel + 18} w={w / 2} h={bottom - lintel - 18} />
-      <DoorLeaf side="r" x={cx} y={lintel + 18} w={w / 2} h={bottom - lintel - 18} />
     </g>
   );
 }
@@ -276,11 +277,6 @@ function Tower() {
       {/* belfry with the bell */}
       <path d={pointed(cx, 106, 240, 336).d} fill="#f7dccc" stroke={INK} strokeWidth={2} strokeOpacity={0.6} />
       <path d={belfry.d} fill="#9c6552" stroke={INK} strokeWidth={2.2} strokeOpacity={0.75} />
-      <g className="bell">
-        <path d={`M${cx} 190V214`} stroke="#3a2a22" strokeWidth={3} />
-        <path d={`M${cx - 30} 270C${cx - 30} 232 ${cx - 18} 214 ${cx} 214C${cx + 18} 214 ${cx + 30} 232 ${cx + 30} 270Q${cx} 280 ${cx - 30} 270Z`} fill="url(#ch-gold)" stroke={INK} strokeWidth={2} strokeOpacity={0.8} />
-        <circle cx={cx} cy={278} r={7} fill="#8a5d2e" />
-      </g>
       {/* louvres below the bell */}
       {[292, 304, 316].map((y) => (
         <path key={y} d={`M${cx - 34} ${y}H${cx + 34}`} stroke="#6e3f30" strokeWidth={4.5} strokeOpacity={0.7} />
@@ -311,12 +307,8 @@ function Aisle({ x0, x1, side }: { x0: number; x1: number; side: 1 | -1 }) {
   );
 }
 
-/** A carved stone urn beside the steps, overflowing with roses, ivy trailing over its rim.
- *  Drawn standing on the ground at (cx, 1500). Its flowers carry .urn-leaf / .urn-rose so they
- *  can bloom in. */
-function Urn({ cx, flip = false }: { cx: number; flip?: boolean }) {
-  const s = flip ? -1 : 1;
-  const trail = [0, 1, 2, 3, 4].map((i) => ({ x: cx - s * (74 - i * 2), y: 1336 + i * 26, a: s > 0 ? 100 + i * 6 : 80 - i * 6 }));
+/** A stone urn on a plinth by the steps, standing on the ground at (cx, 1500). */
+function Urn({ cx }: { cx: number }) {
   return (
     <g>
       {/* plinth, stem, bowl and rim */}
@@ -330,33 +322,95 @@ function Urn({ cx, flip = false }: { cx: number; flip?: boolean }) {
       <rect x={cx - 82} y={1318} width={164} height={16} rx={5} fill="#f7dccc" stroke={INK} strokeWidth={2} strokeOpacity={0.65} />
       <path d={`M${cx - 60} 1352Q${cx - 50} 1390 ${cx - 14} 1396`} fill="none" stroke="#ffffff" strokeOpacity={0.4} strokeWidth={5} strokeLinecap="round" />
       <ellipse cx={cx + 10} cy={1502} rx={70} ry={8} fill={INK} fillOpacity={0.12} />
-
-      {/* ivy trailing over the rim and down the side */}
-      {trail.map((l, i) => (
-        <g key={`t${i}`} className="urn-leaf">
-          <Leaf x={l.x} y={l.y} len={40 - i * 3} a={l.a} />
-        </g>
-      ))}
-      {/* the mound of greenery and roses */}
-      {[-150, -120, -90, -60, -30, -165, -15].map((a, i) => (
-        <g key={`l${i}`} className="urn-leaf">
-          <Leaf x={cx + (i - 3) * 18} y={1316 - (i % 2) * 8} len={64 + (i % 3) * 10} a={a} />
-        </g>
-      ))}
-      {[
-        { x: -44, y: 1300, r: 30, tone: 'pink' as const },
-        { x: 44, y: 1302, r: 30, tone: 'coral' as const },
-        { x: 0, y: 1288, r: 38, tone: 'pink' as const },
-        { x: -22, y: 1262, r: 24, tone: 'peach' as const },
-        { x: 26, y: 1260, r: 22, tone: 'peach' as const },
-        { x: -66, y: 1318, r: 20, tone: 'peach' as const },
-        { x: 66, y: 1320, r: 20, tone: 'pink' as const },
-      ].map((r, i) => (
-        <g key={`r${i}`} className="urn-rose">
-          <Rose x={cx + s * r.x} y={r.y} r={r.r} tone={r.tone} seed={1500 + i + (flip ? 20 : 0)} rot={i * 47} />
-        </g>
-      ))}
     </g>
+  );
+}
+
+/** The ivy and roses in an urn, each its own Piece so it can bloom in on the GPU. */
+function UrnFlowers({ cx, flip = false }: { cx: number; flip?: boolean }) {
+  const s = flip ? -1 : 1;
+  const leaves = [
+    // ivy trailing over the rim and down the side
+    ...[0, 1, 2, 3, 4].map((i) => ({ x: cx - s * (74 - i * 2), y: 1336 + i * 26, a: s > 0 ? 100 + i * 6 : 80 - i * 6, len: 40 - i * 3 })),
+    // the mound of greenery
+    ...[-150, -120, -90, -60, -30, -165, -15].map((a, i) => ({ x: cx + (i - 3) * 18, y: 1316 - (i % 2) * 8, a, len: 64 + (i % 3) * 10 })),
+  ];
+  const roses = [
+    { x: -44, y: 1300, r: 30, tone: 'pink' as const },
+    { x: 44, y: 1302, r: 30, tone: 'coral' as const },
+    { x: 0, y: 1288, r: 38, tone: 'pink' as const },
+    { x: -22, y: 1262, r: 24, tone: 'peach' as const },
+    { x: 26, y: 1260, r: 22, tone: 'peach' as const },
+    { x: -66, y: 1318, r: 20, tone: 'peach' as const },
+    { x: 66, y: 1320, r: 20, tone: 'pink' as const },
+  ];
+  return (
+    <>
+      {leaves.map((l, i) => (
+        <Piece key={`l${i}`} frame={FRAME} box={leafBox(l.x, l.y, l.len, l.a)} className="urn-leaf">
+          <Leaf x={l.x} y={l.y} len={l.len} a={l.a} />
+        </Piece>
+      ))}
+      {roses.map((r, i) => (
+        <Piece key={`r${i}`} frame={FRAME} box={roseBox(cx + s * r.x, r.y, r.r)} className="urn-rose">
+          <Rose x={cx + s * r.x} y={r.y} r={r.r} tone={r.tone} seed={1500 + i + (flip ? 20 : 0)} rot={i * 47} />
+        </Piece>
+      ))}
+    </>
+  );
+}
+
+/** The light in the stained glass, as one piece; the stone tracery is redrawn over it. */
+function WindowGlows() {
+  return (
+    <Piece frame={FRAME} box={[380, 470, 640, 712]} className="win-glow">
+      {[432, 968].map((cx) => {
+        const inner = pointed(cx, 80, 820, 1170);
+        const ty = 820 - (820 - inner.apex) * 0.35;
+        return (
+          <g key={cx}>
+            <path d={inner.d} fill="url(#ch-glow)" />
+            <rect x={cx - 5} y={830} width={10} height={340} fill="#f4d5c3" stroke={INK} strokeWidth={1.4} strokeOpacity={0.6} />
+            <circle cx={cx} cy={ty} r={80 * 0.18} fill="none" stroke="#f4d5c3" strokeWidth={8} />
+            <circle cx={cx} cy={ty} r={80 * 0.18} fill="none" stroke={INK} strokeWidth={1.4} strokeOpacity={0.6} />
+            <path d={inner.d} fill="none" stroke={INK} strokeWidth={2.8} strokeOpacity={0.8} />
+          </g>
+        );
+      })}
+      <circle cx={700} cy={600} r={124} fill="url(#ch-glow)" />
+      <circle cx={700} cy={600} r={124} fill="none" stroke={INK} strokeWidth={3.4} strokeOpacity={0.85} />
+    </Piece>
+  );
+}
+
+/** The parts the scene moves, each lifted out of the drawing. */
+function MovingParts() {
+  const cx = 700, w = 270, lintel = 1170, bottom = 1420;
+  const y = lintel + 18, h = bottom - lintel - 18, half = w / 2;
+  const pad = 6;
+  return (
+    <>
+      <WindowGlows />
+      {/* the bell swings from where it hangs */}
+      <Piece frame={FRAME} box={[cx - 36, 188, 72, 100]} className="bell">
+        <path d={`M${cx} 190V214`} stroke="#3a2a22" strokeWidth={3} />
+        <path d={`M${cx - 30} 270C${cx - 30} 232 ${cx - 18} 214 ${cx} 214C${cx + 18} 214 ${cx + 30} 232 ${cx + 30} 270Q${cx} 280 ${cx - 30} 270Z`} fill="url(#ch-gold)" stroke={INK} strokeWidth={2} strokeOpacity={0.8} />
+        <circle cx={cx} cy={278} r={7} fill="#8a5d2e" />
+      </Piece>
+      {/* the doors turn on their hinges (the outer edges) */}
+      <Piece frame={FRAME} box={[cx - half - pad, y - pad, half + pad * 2, h + pad * 2]} className="door-l" style={{ transformOrigin: `${(pad / (half + pad * 2)) * 100}% 50%` }}>
+        <DoorLeaf side="l" x={cx - half} y={y} w={half} h={h} />
+      </Piece>
+      <Piece frame={FRAME} box={[cx - pad, y - pad, half + pad * 2, h + pad * 2]} className="door-r" style={{ transformOrigin: `${((half + pad) / (half + pad * 2)) * 100}% 50%` }}>
+        <DoorLeaf side="r" x={cx} y={y} w={half} h={h} />
+      </Piece>
+      {/* the light spilling down the steps */}
+      <Piece frame={FRAME} box={[320, 1420, 760, 120]} className="rays">
+        <path d="M570 1420L830 1420L1080 1540L320 1540Z" fill="url(#ch-ray)" />
+      </Piece>
+      <UrnFlowers cx={392} />
+      <UrnFlowers cx={1008} flip />
+    </>
   );
 }
 
@@ -376,7 +430,8 @@ function Greenery({ flip = false }: { flip?: boolean }) {
 
 export default function ChurchArt() {
   return (
-    <svg viewBox="0 -230 1400 1770" preserveAspectRatio="xMidYMax meet" role="img" aria-label="A stone church with a tower and stained-glass windows, its doors opening">
+    <>
+    <svg className="church-base" viewBox="0 -230 1400 1770" preserveAspectRatio="xMidYMax meet" role="img" aria-label="A stone church with a tower and stained-glass windows, its doors opening">
       <defs>
         <linearGradient id="ch-side" x1="0" x2="1" y1="0" y2="0">
           <stop offset="0" stopColor="#f7dccc" />
@@ -472,7 +527,6 @@ export default function ChurchArt() {
           <rect x={x} y={y + h - 8} width={w} height={8} fill={INK} fillOpacity={0.1} />
         </g>
       ))}
-      <path className="rays" d="M570 1420L830 1420L1080 1540L320 1540Z" fill="url(#ch-ray)" opacity={0} />
 
       {/* ivy and climbing roses at the foot of the side walls */}
       <g transform="translate(150 1498)"><Greenery /></g>
@@ -481,7 +535,9 @@ export default function ChurchArt() {
 
       {/* stone urns of roses flanking the steps */}
       <Urn cx={392} />
-      <Urn cx={1008} flip />
+      <Urn cx={1008} />
     </svg>
+    <MovingParts />
+    </>
   );
 }

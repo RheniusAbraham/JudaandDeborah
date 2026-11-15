@@ -10,6 +10,7 @@ import brideFamily from '@/assets/family1.webp';
 import groomFamily from '@/assets/family2.webp';
 import { wedding } from '@/lib/wedding';
 import { useScrollTimeline } from '@/lib/useScrollTimeline';
+import Hook, { hookIn } from './Hook';
 
 const first = (name: string) => name.split(' ')[0];
 // keep titles and initials with the name after them, so a line never ends on "& Mrs."
@@ -36,7 +37,8 @@ export default function FamiliesScene() {
       .add('.fam-img', { translateY: ['0%', '-3%'], duration: 440, ease: 'linear' }, 560)
       // their names arrive from the outside edges
       .add('.fam-bride figcaption', { translateX: ['32px', '0px'], opacity: [0, 1], duration: 240 }, 330)
-      .add('.fam-groom figcaption', { translateX: ['-32px', '0px'], opacity: [0, 1], duration: 240 }, 450),
+      .add('.fam-groom figcaption', { translateX: ['-32px', '0px'], opacity: [0, 1], duration: 240 }, 450)
+      .add('.hook', hookIn, 760),
   );
 
   const families = [
@@ -75,6 +77,7 @@ export default function FamiliesScene() {
             </figcaption>
           </figure>
         ))}
+        <Hook>Come with us to the church</Hook>
       </div>
     </section>
   );

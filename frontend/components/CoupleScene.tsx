@@ -13,6 +13,7 @@ import couple from '@/assets/couple.webp';
 import { wedding } from '@/lib/wedding';
 import { useScrollTimeline, TL } from '@/lib/useScrollTimeline';
 import FloralArch from './FloralArch';
+import Hook, { hookIn } from './Hook';
 
 export default function CoupleScene() {
   const root = useRef<HTMLElement>(null);
@@ -37,7 +38,8 @@ export default function CoupleScene() {
       // names: each arrives from its own side, then rides a little faster than the couple
       .add('.person-bride', { translateX: ['-48px', '0px'], opacity: [0, 1], duration: 280 }, 300)
       .add('.person-groom', { translateX: ['48px', '0px'], opacity: [0, 1], duration: 280 }, 360)
-      .add(['.person-bride', '.person-groom'], { translateY: ['0%', '-40%'], duration: 360, ease: 'linear' }, 640),
+      .add(['.person-bride', '.person-groom'], { translateY: ['0%', '-40%'], duration: 360, ease: 'linear' }, 640)
+      .add('.hook', hookIn, 720),
   );
 
   return (
@@ -73,6 +75,7 @@ export default function CoupleScene() {
             </p>
           </div>
         ))}
+        <Hook>Meet the families</Hook>
       </div>
     </section>
   );

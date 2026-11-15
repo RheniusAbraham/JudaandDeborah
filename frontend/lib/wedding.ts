@@ -47,9 +47,9 @@ export const wedding = {
   },
 
   rsvpBy: '1 January 2027',
-  // WhatsApp number that receives RSVPs, digits only with country code, e.g. '919876543210'.
-  // Leave empty and the form only shows a thank-you on screen.
-  rsvpWhatsApp: '',
+  // Where RSVPs are saved: the web-app address of the couple's Google Sheet script
+  // (it ends in /exec; see rsvp/SETUP.md). Empty: the form works, but replies go nowhere.
+  rsvpSheetUrl: 'https://script.google.com/macros/s/AKfycbyK7uVMd8Js8EKVhLRXuFzRSHlnxqA2-LrwF11AqY_Zy4bKZREPNw3FiFMsT3GyZJjEWw/exec',
 };
 
 type Place = { name: string; address: string; maps?: string };

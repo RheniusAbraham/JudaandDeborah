@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { createScope, createTimeline, stagger, type Timeline } from 'animejs';
 import ArchArt from './ArchArt';
+import Hook, { hookIn } from './Hook';
 import { FloatingHearts, Flourish } from './VerseHearts';
 import { wedding } from '@/lib/wedding';
 
@@ -20,12 +21,19 @@ function Name({ word }: { word: string }) {
   );
 }
 
+/** The cue's tap: a gentle scroll to the verse. */
+function next() {
+  window.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+}
+
 export default function OpeningScene() {
   const root = useRef<HTMLElement>(null);
 
   // 1. Page-load moment: the arch appears, then the names write themselves in.
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // the script is running, so the CSS safety net (which would re-animate everything at 6s) stands down
+    document.documentElement.classList.add('intro-run');
     const scope = createScope({ root }).add(() => {
       createTimeline({ defaults: { ease: 'outQuart', duration: 900 } })
         .add('.layers', { opacity: [0, 1], scale: [1.045, 1], duration: 1900 })
@@ -59,7 +67,9 @@ export default function OpeningScene() {
         .add(['.layer-left', '.layer-right', '.layer-top', '.layer-bottom'], { scale: [1, 3.4], duration: 820 }, 0)
         .add(['.layer-left', '.layer-right', '.layer-top', '.layer-bottom'], { opacity: [1, 0], duration: 200, ease: 'linear' }, 600)
         // and the verse is waiting on the wall beyond
-        .add('.verse', { opacity: [0, 1], scale: [0.92, 1], duration: 300, ease: 'outQuad' }, 480);
+        .add('.verse', { opacity: [0, 1], scale: [0.92, 1], duration: 300, ease: 'outQuad' }, 480)
+        // and once it has settled, a nudge onward
+        .add('.hook', hookIn, 840);
     });
 
     let target = 0;
@@ -70,7 +80,10 @@ export default function OpeningScene() {
     // the hearts float only while the verse is showing and the scene is on screen
     const verse = el.querySelector('.verse');
     let inView = true;
-    const syncHearts = () => verse?.classList.toggle('hearts-run', inView && shown > 0.5);
+    const syncHearts = () => {
+      verse?.classList.toggle('hearts-run', inView && shown > 0.5);
+      el.classList.toggle('cue-off', shown > 0.04); // the guest has started: the cue's job is done
+    };
     const io = new IntersectionObserver(([e]) => {
       inView = e.isIntersecting;
       syncHearts();
@@ -143,12 +156,23 @@ export default function OpeningScene() {
           </div>
         </div>
 
+        <button type="button" className="cue" onClick={next}>
+          <span className="cue-touch">Swipe up to open the invitation</span>
+          <span className="cue-mouse">Scroll down to open the invitation</span>
+          <span className="cue-arrow" aria-hidden="true">
+            <svg viewBox="0 0 16 16">
+              <path d="M3.5 6l4.5 4.5L12.5 6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        </button>
+
         <blockquote className="verse">
           <FloatingHearts />
           <p>The Lord has done great things for us, and we are filled with joy.</p>
           <Flourish />
           <cite>Psalm 126:3</cite>
         </blockquote>
+        <Hook>Meet the bride and groom</Hook>
       </div>
     </section>
   );

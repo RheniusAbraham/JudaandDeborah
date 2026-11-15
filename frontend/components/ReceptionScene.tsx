@@ -9,6 +9,7 @@ import { createTimeline, stagger } from 'animejs';
 import { ReceptionDefs, ReceptionLayers } from './ReceptionArt';
 import { wedding, mapsUrl, calendarUrl } from '@/lib/wedding';
 import { useScrollTimeline, TL } from '@/lib/useScrollTimeline';
+import Hook, { hookIn } from './Hook';
 
 export default function ReceptionScene() {
   const root = useRef<HTMLElement>(null);
@@ -22,9 +23,9 @@ export default function ReceptionScene() {
       .set('.r-card', { opacity: 0, translateY: 30 }, 0)
       .add('.r-head', { opacity: [0, 1], translateY: [16, 0], duration: 180 }, 0)
       // the lights come on: bulbs one after another, then chandeliers and candles
-      .add('.bulb-glow', { opacity: [0, 1], duration: 90, delay: stagger(2.2, { from: 'center' }), ease: 'outQuad' }, 120)
-      .add('.chandelier-glow', { opacity: [0, 1], scale: [0.6, 1], duration: 240 }, 260)
-      .add('.flame-c', { opacity: [0.25, 1], duration: 160, delay: stagger(14) }, 280)
+      .add('.bulb-glow', { opacity: [0, 1], duration: 110, delay: stagger(24), ease: 'outQuad' }, 120)
+      .add('.chandelier-glow', { opacity: [0, 1], duration: 240 }, 260)
+      .add('.flame-lit', { opacity: [0, 1], duration: 160, delay: stagger(14) }, 280)
       .add('.candle-glow', { opacity: [0, 1], duration: 200, delay: stagger(20) }, 320)
       .add('.floor-glow', { opacity: [0, 1], duration: 260, ease: 'linear' }, 360)
       // the room warms from dusk to gold
@@ -39,7 +40,8 @@ export default function ReceptionScene() {
       .add('.rl-strings', { translateY: ['10%', '-14%'], duration: TL, ease: 'linear' }, 0)
       .add('.rl-front', { translateY: ['18%', '-10%'], duration: TL, ease: 'linear' }, 0)
       // the details
-      .add('.r-card', { opacity: [0, 1], translateY: [30, 0], duration: 200 }, 680),
+      .add('.r-card', { opacity: [0, 1], translateY: [30, 0], duration: 200 }, 680)
+      .add('.hook', hookIn, 880),
   );
 
   return (
@@ -76,6 +78,7 @@ export default function ReceptionScene() {
             </a>
           </div>
         </div>
+        <Hook>Your invitation card is waiting</Hook>
       </div>
     </section>
   );

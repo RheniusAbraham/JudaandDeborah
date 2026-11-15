@@ -234,15 +234,14 @@ const p3 = (x: number, y: number) => `${r3(x)} ${r3(y)}`;
 
 /** One cupped petal pointing along +x, base at the origin, in unit size. Outer petals get a
  *  small notch at the tip, the way an open rose petal rolls back. */
-function petalBody(L: number, W: number, notch: boolean) {
-  const tip = notch
-    ? `Q${p3(L * 1.02, -W * 0.2)} ${p3(L * 0.955, 0)}Q${p3(L * 1.02, W * 0.2)} ${p3(L * 0.96, W * 0.45)}`
-    : `Q${p3(L * 1.04, 0)} ${p3(L * 0.96, W * 0.45)}`;
-  return `M0 0C${p3(L * 0.28, -W)} ${p3(L * 0.82, -W * 1.05)} ${p3(L * 0.96, -W * 0.45)}${tip}C${p3(L * 0.82, W * 1.05)} ${p3(L * 0.28, W)} 0 0Z`;
+function petalBody(t: (x: number, y: number) => string, notch: boolean) {
+  // t maps the petal's own space (x along it in lengths, y across it in widths) into the rose's
+  const tip = notch ? `Q${t(1.02, -0.2)} ${t(0.955, 0)}Q${t(1.02, 0.2)} ${t(0.96, 0.45)}` : `Q${t(1.04, 0)} ${t(0.96, 0.45)}`;
+  return `M${t(0, 0)}C${t(0.28, -1)} ${t(0.82, -1.05)} ${t(0.96, -0.45)}${tip}C${t(0.82, 1.05)} ${t(0.28, 1)} ${t(0, 0)}Z`;
 }
 
 export type RoseRing = {
-  petals: { body: string; transform: string }[];
+  petals: string[]; // in the rose's own space: no per-petal transform, so a rose paints as one piece
   shade: string; // deep shadow at the base of each petal, where the next ring tucks in
   veins: string; // faint lines fanning toward the tip
   turn: string;  // the paler rolled-back lip of each petal
@@ -252,8 +251,9 @@ export type RoseRing = {
 
 /**
  * A rose in unit size (radius 1), centered on 0,0: four rings of cupped petals around a
- * tight swirled bud. Scale it to the size wanted. Each ring's details are baked into the
- * rose's own space and merged into one path apiece, so a rose stays cheap to draw.
+ * tight swirled bud. Scale it to the size wanted. Every petal is baked into the rose's own
+ * space (no transform per petal), and each ring's details are merged into one path apiece, so
+ * the browser treats a whole rose as a single piece: cheap to paint and to composite.
  */
 export function roseShape(seed: number) {
   const rand = rng(seed);
@@ -275,10 +275,7 @@ export function roseShape(seed: number) {
       const ca = Math.cos(a);
       const sa = Math.sin(a);
       const t = (x: number, y: number) => p3(bx + x * L * ca - y * W * sa, by + x * L * sa + y * W * ca);
-      out.petals.push({
-        body: petalBody(L, W, ring.notch),
-        transform: `translate(${r3(bx)} ${r3(by)}) rotate(${r3((a * 180) / Math.PI)})`,
-      });
+      out.petals.push(petalBody(t, ring.notch));
       out.shade += `M${t(0, 0)}Q${t(0.3, -0.6)} ${t(0.46, 0)}Q${t(0.3, 0.6)} ${t(0, 0)}Z`;
       out.veins +=
         `M${t(0.24, 0)}Q${t(0.55, -0.05)} ${t(0.8, -0.02)}` +

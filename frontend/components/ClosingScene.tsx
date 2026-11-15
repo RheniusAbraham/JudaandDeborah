@@ -7,6 +7,11 @@
 import { useMemo, useRef } from 'react';
 import { createTimeline, stagger } from 'animejs';
 import { Rose, Leaf } from './ArchArt';
+import Piece, { leafBox, roseBox, type Box } from './Piece';
+
+const FRAME: Box = [0, 0, 1000, 1000];
+/** How far a piece starts away, as a % of its own box (what a CSS translate % means). */
+const pct = (d: number, size: number) => Math.round((d / size) * 1000) / 10;
 import ShareButton from './ShareButton';
 import { rng } from '@/lib/arch/geom';
 import { wedding, calendarUrl } from '@/lib/wedding';
@@ -43,20 +48,29 @@ function Wreath() {
     return { leaves, roses };
   }, []);
 
+  // Every leaf and rose is its own Piece, so all 70 can drift home on the GPU at once.
   return (
-    <svg className="wreath-art" viewBox="0 0 1000 1000" aria-hidden="true">
-      <circle cx={500} cy={500} r={392} fill="none" stroke="#8a6a52" strokeOpacity={0.35} strokeWidth={6} className="wreath-ring" />
-      {parts.leaves.map((l, i) => (
-        <g key={i} className="w-leaf" data-dx={l.dx} data-dy={l.dy} data-spin={l.spin}>
-          <Leaf x={l.x} y={l.y} len={l.len} a={l.a} />
-        </g>
-      ))}
-      {parts.roses.map((r, i) => (
-        <g key={i} className="w-rose" data-dx={r.dx} data-dy={r.dy} data-spin={r.spin}>
-          <Rose x={r.x} y={r.y} r={r.r} tone={r.tone} seed={r.seed} rot={r.rot} />
-        </g>
-      ))}
-    </svg>
+    <div className="wreath-art" aria-hidden="true">
+      <Piece frame={FRAME} box={[96, 96, 808, 808]} className="wreath-ring">
+        <circle cx={500} cy={500} r={392} fill="none" stroke="#8a6a52" strokeOpacity={0.35} strokeWidth={6} />
+      </Piece>
+      {parts.leaves.map((l, i) => {
+        const box = leafBox(l.x, l.y, l.len, l.a);
+        return (
+          <Piece key={i} frame={FRAME} box={box} className="w-leaf" data-dx={pct(l.dx, box[2])} data-dy={pct(l.dy, box[3])} data-spin={l.spin}>
+            <Leaf x={l.x} y={l.y} len={l.len} a={l.a} />
+          </Piece>
+        );
+      })}
+      {parts.roses.map((r, i) => {
+        const box = roseBox(r.x, r.y, r.r);
+        return (
+          <Piece key={i} frame={FRAME} box={box} className="w-rose" data-dx={pct(r.dx, box[2])} data-dy={pct(r.dy, box[3])} data-spin={r.spin}>
+            <Rose x={r.x} y={r.y} r={r.r} tone={r.tone} seed={r.seed} rot={r.rot} />
+          </Piece>
+        );
+      })}
+    </div>
   );
 }
 
@@ -88,20 +102,20 @@ export default function ClosingScene() {
       .set('.close-text > *', { opacity: 0, translateY: 14 }, 0)
       .set('.close-names .ch, .close-amp', { opacity: 0 }, 0)
       .set('.close-actions', { opacity: 0, translateY: 18 }, 0)
-      .set('.wreath-ring', { opacity: 0 }, 0)
+      // the leaves and roses wait out of sight until the scene fills the screen and they fly in
+      .set('.w-leaf, .w-rose', { opacity: 0 }, 0)
       // the wreath gathers: leaves first, then roses, each drifting home from where it started
-      .add('.wreath-ring', { opacity: [0, 1], duration: 200, ease: 'linear' }, 0)
       .add('.w-leaf', {
-        translateX: { from: (el: unknown) => num(el, 'dx'), to: 0 },
-        translateY: { from: (el: unknown) => num(el, 'dy'), to: 0 },
+        translateX: { from: (el: unknown) => `${num(el, 'dx')}%`, to: '0%' },
+        translateY: { from: (el: unknown) => `${num(el, 'dy')}%`, to: '0%' },
         rotate: { from: (el: unknown) => num(el, 'spin'), to: 0 },
         opacity: [0, 1],
         duration: 340,
         delay: stagger(4, { from: 'random' }),
       }, 0)
       .add('.w-rose', {
-        translateX: { from: (el: unknown) => num(el, 'dx'), to: 0 },
-        translateY: { from: (el: unknown) => num(el, 'dy'), to: 0 },
+        translateX: { from: (el: unknown) => `${num(el, 'dx')}%`, to: '0%' },
+        translateY: { from: (el: unknown) => `${num(el, 'dy')}%`, to: '0%' },
         rotate: { from: (el: unknown) => num(el, 'spin'), to: 0 },
         opacity: [0, 1],
         duration: 380,
@@ -116,6 +130,8 @@ export default function ClosingScene() {
       .add('.close-verse', { opacity: [0, 1], translateY: [14, 0], duration: 140 }, 780)
       // and the last two things to do
       .add('.close-actions', { opacity: [0, 1], translateY: [18, 0], duration: 160 }, 840),
+    // the wreath gathers from beyond the screen edges: wait until the scene fills the screen
+    { lead: 0 },
   );
 
   return (

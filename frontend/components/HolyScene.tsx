@@ -9,6 +9,7 @@ import { createTimeline, stagger } from 'animejs';
 import ChurchArt from './ChurchArt';
 import { wedding, mapsUrl, calendarUrl } from '@/lib/wedding';
 import { useScrollTimeline } from '@/lib/useScrollTimeline';
+import Hook, { hookIn } from './Hook';
 
 export default function HolyScene() {
   const root = useRef<HTMLElement>(null);
@@ -48,7 +49,8 @@ export default function HolyScene() {
       .add('.church', { opacity: [1, 0], duration: 120, ease: 'linear' }, 740)
       .add('.h-light', { opacity: [0, 1], duration: 220, ease: 'linear' }, 640)
       // the details, waiting in the light
-      .add('.h-card', { opacity: [0, 1], translateY: [28, 0], duration: 180 }, 820),
+      .add('.h-card', { opacity: [0, 1], translateY: [28, 0], duration: 180 }, 820)
+      .add('.hook', hookIn, 900),
   );
 
   return (
@@ -84,6 +86,7 @@ export default function HolyScene() {
             </a>
           </div>
         </div>
+        <Hook>And then, an evening to celebrate</Hook>
       </div>
     </section>
   );

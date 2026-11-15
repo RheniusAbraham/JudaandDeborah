@@ -10,7 +10,7 @@ import {
   VW, VH, CURTAIN, rng, curtainShape, swagShape, swagHemY, roseShape, leafShape, sprigShape, stem, stemPoints,
   type Disp,
 } from '@/lib/arch/geom';
-import { Tap, breeze, freedom } from '@/lib/arch/sway';
+import { Tap } from '@/lib/arch/sway';
 
 const INK = '#5a2f2a';
 type Tone = 'pink' | 'coral' | 'peach';
@@ -38,7 +38,9 @@ function Speckle() {
   );
 }
 
-function Defs() {
+/** The shared paint (fabric, roses, leaves...) every scene's flowers use. It's rendered once at
+ *  the page level, outside the scenes, so it is always available even while a scene is skipped. */
+export function ArchDefs() {
   return (
     <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true" focusable="false">
       <defs>
@@ -111,13 +113,17 @@ function Defs() {
             ['peach', ['#b8513f', '#e07e6b', '#f2a493', '#fbd2c6', '#fff0ea']],
           ] as const
         ).map(([tone, c]) => (
-          <radialGradient key={tone} id={`a-rose-${tone}`} gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1.05">
-            <stop offset="0" stopColor={c[0]} />
-            <stop offset=".25" stopColor={c[1]} />
-            <stop offset=".55" stopColor={c[2]} />
-            <stop offset=".85" stopColor={c[3]} />
-            <stop offset="1" stopColor={c[4]} />
-          </radialGradient>
+          // one for buds, then one per ring of petals, each reaching as far as that ring's tips,
+          // so every petal still runs deep at its base to pale at its tip
+          [['', 1.05], ['-0', 1.08], ['-1', 0.9], ['-2', 0.68], ['-3', 0.48]].map(([k, r]) => (
+            <radialGradient key={tone + k} id={`a-rose-${tone}${k}`} gradientUnits="userSpaceOnUse" cx="0" cy="0" r={r}>
+              <stop offset="0" stopColor={c[0]} />
+              <stop offset={k ? '.42' : '.25'} stopColor={c[1]} />
+              <stop offset={k ? '.7' : '.55'} stopColor={c[2]} />
+              <stop offset={k ? '.92' : '.85'} stopColor={c[3]} />
+              <stop offset="1" stopColor={c[4]} />
+            </radialGradient>
+          ))
         ))}
         <linearGradient id="a-leaf" x1="0" x2="1" y1="0" y2="0">
           <stop offset="0" stopColor="#4d6b5a" />
@@ -179,7 +185,7 @@ export function Rose({ x, y, r, tone, seed, rot = 0 }: { x: number; y: number; r
       {s.rings.map((ring, ri) => (
         <g key={ri}>
           {ring.petals.map((p, i) => (
-            <path key={i} d={p.body} transform={p.transform} fill={fill} stroke={INK} strokeOpacity={ri === 0 ? 0.6 : 0.42} strokeWidth={1.2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+            <path key={i} d={p} fill={`url(#a-rose-${tone}-${ri})`} stroke={INK} strokeOpacity={ri === 0 ? 0.6 : 0.42} strokeWidth={1.2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
           ))}
           <path d={ring.shade} fill={INK} fillOpacity={0.1 + ri * 0.03} />
           <path d={ring.veins} fill="none" stroke={INK} strokeOpacity={0.14} strokeWidth={0.8} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
@@ -455,7 +461,7 @@ function TieBack() {
   );
 }
 
-/** One curtain. Its fabric paths are rebuilt each frame while it sways after a tap. */
+/** One curtain. It sways on the GPU; its fabric paths are only rebuilt while a tap ripples it. */
 function Curtain({ side }: { side: 'left' | 'right' }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const strips = useRef<(SVGPathElement | null)[]>([]);
@@ -471,22 +477,19 @@ function Curtain({ side }: { side: 'left' | 'right' }) {
   const base = useMemo(() => curtainShape(), []);
   const clipId = `a-clip-${side}`;
 
+  // The breeze is a CSS sway on the GPU (see .curtain in globals.css): the curtain hangs from
+  // its rod and its hem drifts, at no cost to the page. Only a tap reshapes the cloth itself,
+  // for the second or two its ripple lasts.
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const seed = side === 'left' ? 0 : 2.1; // the two curtains never move in lockstep
     const tap = new Tap();
-    let t = 0;
     let last = 0;
     let raf: number | null = null;
-    let visible = true;
 
     // All motion is in the curtain's own drawing space; the right curtain is drawn mirrored,
     // so "negative x" is outward for both.
-    const d: Disp = (y, k) => {
-      const free = freedom(y);
-      return tap.at(y) + free * breeze(y, k, t, seed);
-    };
+    const d: Disp = (y) => tap.at(y);
     const apply = () => {
       const s = curtainShape(d);
       s.strips.forEach((p, i) => strips.current[i]?.setAttribute('d', p));
@@ -504,54 +507,33 @@ function Curtain({ side }: { side: 'left' | 'right' }) {
       sheer.current?.setAttribute('d', s.hem);
       tie.current?.setAttribute('transform', `translate(${d(CURTAIN.tie, 0.5).toFixed(1)} 0)`);
     };
-    let lastDraw = 0;
     const frame = (now: number) => {
       const dt = Math.min(0.05, last ? (now - last) / 1000 : 1 / 60);
       last = now;
-      t += dt;
       tap.advance(dt);
-      // Redrawing the cloth is the expensive part. A tap ripple is drawn every frame so it
-      // stays crisp; the slow breeze looks the same at ~30fps; and while the visitor is
-      // scrolling through the zoom the curtains rush past, so the breeze rests there.
-      const zooming = window.scrollY > 24;
-      if (tap.active || (!zooming && now - lastDraw >= 32)) {
-        apply();
-        lastDraw = now;
-      }
-      raf = visible && !document.hidden ? requestAnimationFrame(frame) : null;
+      apply(); // once the ripple dies away this draws the cloth back at rest, then stops
+      raf = tap.active ? requestAnimationFrame(frame) : null;
     };
-    const start = () => {
-      if (raf === null && visible && !document.hidden) {
+    const onTap = (e: MouseEvent) => {
+      const r = svg.getBoundingClientRect();
+      tap.kick(((e.clientY - r.top) / r.height) * VH, -520);
+      if (raf === null) {
         last = 0;
         raf = requestAnimationFrame(frame);
       }
     };
-    // only animate while the curtain is on screen and the tab is open
-    const io = new IntersectionObserver(([e]) => {
-      visible = e.isIntersecting;
-      start();
-    });
-    io.observe(svg);
-    document.addEventListener('visibilitychange', start);
-
-    const onTap = (e: MouseEvent) => {
-      const r = svg.getBoundingClientRect();
-      tap.kick(((e.clientY - r.top) / r.height) * VH, -520);
-      start();
-    };
     const fabric = svg.querySelector('.fabric');
     fabric?.addEventListener('click', onTap as EventListener);
-    start();
     return () => {
-      io.disconnect();
-      document.removeEventListener('visibilitychange', start);
       fabric?.removeEventListener('click', onTap as EventListener);
       if (raf !== null) cancelAnimationFrame(raf);
     };
   }, [side]);
 
   return (
-    <svg ref={svgRef} className={`layer layer-${side}`} viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    // the outer box is what the scroll zoom scales; the svg inside it sways
+    <div className={`layer layer-${side}`}>
+    <svg ref={svgRef} className={`curtain curtain-${side}`} viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
         <clipPath id={clipId}>
           <path ref={clip} d={base.outline} />
@@ -597,6 +579,7 @@ function Curtain({ side }: { side: 'left' | 'right' }) {
         </g>
       </g>
     </svg>
+    </div>
   );
 }
 
@@ -729,7 +712,6 @@ function Top() {
 export default function ArchArt() {
   return (
     <>
-      <Defs />
       <Wall />
       <Beads />
       <Curtain side="left" />

@@ -16,8 +16,6 @@
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
 html { overflow-x: hidden; overflow-x: clip; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-/* guided scrolling glides itself; no browser smoothing on top, and no pull-to-refresh bounce */
-html.guided { scroll-behavior: auto; overscroll-behavior-y: none; }
 body {
   overflow-x: hidden; overflow-x: clip;
   background: var(--paper);
@@ -54,6 +52,20 @@ img { display: block; }
 .layers { position: absolute; inset: 0; }
 .layer { object-fit: cover; will-change: transform; }
 svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+div.layer { position: absolute; inset: 0; pointer-events: none; }
+/* The curtains' breeze, on the GPU: each hangs from the rod (1.7% down the art) and its hem
+   drifts a few pixels, the two never in step. Skew moves the hem most and the rod not at all. */
+.curtain { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; transform-origin: 50% 1.7%; will-change: transform; }
+@media (prefers-reduced-motion: no-preference) {
+  .curtain-left { animation: curtain-sway 7.6s ease-in-out infinite; }
+  .curtain-right { animation: curtain-sway 8.9s ease-in-out -3.4s infinite reverse; }
+}
+@keyframes curtain-sway {
+  0%, 100% { transform: skewX(0deg); }
+  28% { transform: skewX(-0.55deg); }
+  52% { transform: skewX(-0.2deg); }
+  74% { transform: skewX(0.4deg); }
+}
 /* only the curtain fabric takes taps; everything else lets them through */
 .layer-left .fabric, .layer-right .fabric { pointer-events: visiblePainted; cursor: pointer; }
 .layer-left .fabric, .layer-right .fabric { -webkit-tap-highlight-color: transparent; }
@@ -84,8 +96,9 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   width: min(calc(var(--fig-w) * 1.5), 94vw);
   height: calc(var(--fig-h) * 1.18);
 }
-.af { transform-box: fill-box; transform-origin: 50% 100%; } /* flowers grow from their base */
-.window svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.af { transform-origin: 50% 100%; } /* flowers grow from their base */
+/* the arch drawing's own box: its exact proportions, as tall as the window allows, bottom middle */
+.farch { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; width: min(100%, calc(var(--fig-h) * 1.18 * var(--ar))); }
 .couple-figure {
   position: absolute;
   left: 50%;
@@ -213,7 +226,9 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   aspect-ratio: 1400 / 1770;
   transform-origin: 50% 86%; /* the zoom heads through the doorway */
 }
-.church svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.church > .church-base { width: 100%; height: 100%; display: block; overflow: visible; }
+/* the window glow and the light on the steps start dark; the scroll timeline lights them */
+.church .win-glow, .church .rays { opacity: 0; }
 /* door leaves turn on their hinges; the bell hangs from its top */
 .door-l { transform-box: fill-box; transform-origin: 0% 50%; }
 .door-r { transform-box: fill-box; transform-origin: 100% 50%; }
@@ -251,6 +266,10 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .reception { position: relative; height: 280vh; background: #e7b8a1; }
 .rpin { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
 .rlayer { position: absolute; inset: -6% 0; width: 100%; height: 112%; display: block; }
+.rl-sheet { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.rl-part { will-change: transform, opacity; }
+/* lights start off; the scroll timeline turns them on */
+.bulb-glow, .chandelier-glow, .candle-glow, .floor-glow, .flame-lit { opacity: 0; }
 .rose-arch { transform-box: fill-box; transform-origin: 50% 50%; }
 .chandelier-glow { transform-box: fill-box; transform-origin: 50% 50%; }
 /* dusk: the room before the lights come on */
@@ -269,17 +288,15 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .r-card {
   position: absolute;
   left: 50%;
-  bottom: max(4svh, 18px);
+  bottom: calc(max(4svh, 18px) + 52px); /* room for the teaser below it */
   width: min(92vw, 30rem);
   margin-left: calc(min(92vw, 30rem) / -2);
   padding: 18px 18px 20px;
   text-align: center;
-  background: rgba(253, 241, 233, .9);
+  background: rgba(253, 241, 233, .96); /* solid enough to read without a live blur (blurs re-render every frame) */
   border: 1px solid rgba(90, 47, 42, .18);
   border-radius: 22px;
   box-shadow: 0 18px 50px -24px rgba(90, 47, 42, .45);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
 }
 .r-time { font-weight: 300; font-size: clamp(2rem, 9vw, 2.8rem); line-height: 1.1; font-variant-numeric: lining-nums; }
 .r-venue { font-weight: 500; font-size: clamp(1.1rem, 4.6vw, 1.4rem); margin-top: 6px; text-wrap: balance; }
@@ -350,7 +367,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .btn.small { min-height: 44px; padding: 0 22px; font-size: .95rem; }
 .card-btn { margin-top: .6cqw; position: relative; z-index: 1; }
 
-.rsvp-sec { position: relative; padding: 24px 22px 96px; background: var(--paper); scroll-margin-top: 16px; }
+.rsvp-sec { position: relative; padding: 24px 22px 40px; background: var(--paper); scroll-margin-top: 16px; }
 .rsvp-title, .env-title, .h-title, .r-title { font-family: var(--font-script), cursive; font-style: normal; font-weight: 400; }
 .rsvp-title, .env-title { font-size: clamp(2.7rem, 12vw, 4.4rem); line-height: 1.1; text-align: center; color: var(--ink); }
 
@@ -381,7 +398,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
   container-type: inline-size;
 }
 .wreath-art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.w-leaf, .w-rose { transform-box: fill-box; transform-origin: 50% 50%; }
+.w-leaf, .w-rose { transform-origin: 50% 50%; }
 .close-text {
   position: absolute;
   inset: 16%;
@@ -412,11 +429,23 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 }
 
 /* ================= SMOOTHNESS =================
-   The big pieces the scroll scenes move get their own compositor layer, so the browser slides
-   and fades them on the GPU instead of repainting them every frame. */
-.couple-figure, .window, .person, .fam-img, .fam-glow, .church, .h-card, .h-light,
-.env, .env-card, .rlayer, .r-card, .r-dim, .wreath, .verse, .inside {
+   1. Every element a scroll scene moves or fades gets its own compositor layer, so the GPU
+      slides and fades it. If even one animated element were left out, every frame would
+      repaint and re-layer the page, which is where the stutter came from.
+   2. A scene that's off screen isn't drawn at all (content-visibility), so the page only
+      ever pays for the scene in view. */
+.couple-figure, .window, .person, .fam-img, .fam-glow, .fam figcaption, .blessing,
+.church, .h-card, .h-light, .h-head,
+.env, .env-card, .env-head, .env-part, .rlayer, .r-card, .r-dim, .r-head,
+.wreath, .close-text > *, .close-names .ch, .close-amp, .close-actions,
+.verse, .inside, .together, .names .ch, .names .and, .after {
   will-change: transform, opacity;
+}
+/* a part of a drawing lifted into its own box (components/Piece.tsx) */
+.piece { position: absolute; display: block; overflow: visible; pointer-events: none; will-change: transform, opacity; }
+.opening, .couple, .families, .holy, .reception, .invite-env, .closing {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100svh;
 }
 
 /* the zoom heads for the middle of the arch's opening */
@@ -539,25 +568,75 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
 .when { font-size: 4.7cqw; font-weight: 500; margin-top: 3cqw; letter-spacing: .01em; }
 .where { font-size: 3.6cqw; color: var(--ink-soft); }
 
+/* "Swipe up": tells guests the invitation continues. It fades in once the names have written
+   themselves, and away as soon as the guest moves on (OpeningScene adds .cue-off). */
 .cue {
   position: absolute;
-  bottom: 2.6%;
-  left: 0;
-  right: 0;
-  width: max-content;
-  margin-inline: auto; /* centered without transform, which the intro animation owns */
+  left: 50%;
+  bottom: calc(max(14px, 2.2svh) + env(safe-area-inset-bottom));
+  z-index: 5;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 10px;
   min-height: 44px;
-  padding: 4px 12px;
-  font-size: 3.3cqw;
+  padding: 6px 18px 6px 14px;
+  border: 1px solid rgba(90, 47, 42, .2);
+  border-radius: 999px;
+  background: rgba(253, 241, 233, .95);
+  box-shadow: 0 10px 30px -14px rgba(90, 47, 42, .5);
+  color: var(--ink);
+  font: inherit;
+  font-size: .98rem;
   font-style: italic;
-  color: var(--ink-soft);
-  text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
+  translate: -50% 0;
+  opacity: 0;
+  will-change: transform, opacity; /* its fades never repaint the page under it */
+  animation: cue-in .9s var(--ease) 3.4s forwards;
+  transition: opacity .45s var(--ease), translate .45s var(--ease);
 }
+.cue:hover { background: #fff6ef; }
+/* the teaser at the foot of each scene (components/Hook.tsx): the cue's look, smaller */
+.hook {
+  position: absolute;
+  left: 50%;
+  bottom: calc(max(14px, 2.2svh) + env(safe-area-inset-bottom));
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  margin: 0;
+  padding: 5px 7px 5px 16px;
+  border: 1px solid rgba(90, 47, 42, .18);
+  border-radius: 999px;
+  background: rgba(253, 241, 233, .95);
+  box-shadow: 0 10px 30px -14px rgba(90, 47, 42, .5);
+  color: var(--ink);
+  font-size: .95rem;
+  font-style: italic;
+  white-space: nowrap;
+  pointer-events: none;
+  translate: -50% 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.hook .cue-arrow { width: 24px; height: 24px; }
+/* the teasers' arrows keep still: five arrows bobbing while hidden would cost every frame */
+.hook .cue-arrow svg { animation: none; }
+.cue-off .cue { opacity: 0 !important; translate: -50% 12px; pointer-events: none; animation: none; }
+.cue-arrow { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--rose); color: #fff7f2; }
+.cue-arrow svg { width: 14px; height: 14px; animation: cue-bob 1.6s ease-in-out infinite; }
+.cue-off .cue-arrow svg { animation-play-state: paused; }
+/* the words match the device: swipe on touch screens, scroll with a mouse or trackpad */
+.cue-touch { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .cue-touch { display: inline; }
+  .cue-mouse { display: none; }
+}
+@keyframes cue-in { from { opacity: 0; translate: -50% 10px; } to { opacity: 1; translate: -50% 0; } }
+@keyframes cue-bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
 
 /* Starting states for the Anime.js intro (only with JS, never with reduced motion). */
 @media (prefers-reduced-motion: no-preference) {
@@ -566,6 +645,7 @@ svg.layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: v
     /* safety net: if the script never runs, the invitation still appears */
     animation: appear .6s 6s forwards;
   }
+  .js.intro-run .layers, .js.intro-run .together, .js.intro-run .names .ch, .js.intro-run .names .and, .js.intro-run .after { animation: none; }
 }
 @keyframes appear { to { opacity: 1; } }
 
@@ -703,6 +783,29 @@ input:focus-visible, textarea:focus-visible { outline: none; border-color: var(-
 .rsvp-done { text-align: center; padding: 10px 0; }
 .rsvp-done-title { font-family: var(--font-script), cursive; font-size: 2.4rem; line-height: 1.2; }
 .rsvp-done p:not(.rsvp-done-title) { color: var(--ink-soft); margin-top: 6px; }
+.rsvp-done:focus { outline: none; }
+.done-hearts { display: block; width: 96px; height: 32px; margin: 0 auto 6px; overflow: visible; }
+.done-hearts path { transform-box: fill-box; transform-origin: 50% 50%; }
+.rsvp-done .done-note { font-style: italic; margin-top: 0; }
+.rsvp-done .done-lede { font-size: 1.05rem; }
+.done-summary { display: grid; gap: 8px; margin: 20px auto 0; padding: 16px 18px; max-width: 22rem; text-align: left; border: 1px solid var(--line); border-radius: 14px; background: #fffaf6; }
+.done-summary div { display: grid; grid-template-columns: 4.6rem 1fr; gap: 10px; align-items: baseline; }
+.done-summary dt { font-size: .9rem; font-style: italic; color: var(--ink-soft); }
+.done-summary dd { margin: 0; font-weight: 500; }
+.done-who { display: block; font-weight: 400; font-size: .93rem; color: var(--ink-soft); }
+.done-cal { display: grid; gap: 10px; margin: 18px auto 0; max-width: 22rem; }
+.done-cal .btn { min-height: 46px; font-size: .95rem; }
+
+/* RSVP: checking and sending */
+.field-error { color: #a32b3f; font-size: .95rem; line-height: 1.4; }
+.field-error::before { content: "! "; font-weight: 600; }
+input[aria-invalid="true"] { border-color: #a32b3f; box-shadow: 0 0 0 3px rgba(163, 43, 63, .12); }
+.send-error { padding: 12px 14px; border-radius: 12px; background: #fbe9e6; color: #7f231d; font-size: .97rem; line-height: 1.45; }
+.btn.is-sending, .btn:disabled { opacity: .85; cursor: progress; }
+.btn .spinner { width: 16px; height: 16px; margin-right: 10px; border: 2px solid rgba(255, 247, 242, .4); border-top-color: #fff7f2; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* the spam-bot trap: off screen, never seen or tabbed to */
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .link-btn { margin-top: 18px; min-height: 44px; border: 0; background: none; color: var(--rose); font: inherit; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 
 /* RSVP: the party, one row per person, each with their meal */
@@ -865,16 +968,15 @@ input:focus-visible, textarea:focus-visible { outline: none; border-color: var(-
   .pair #venue { border-left: 1px solid var(--line); margin-top: 88px; padding-top: 0; }
 }
 
-@media (hover: hover) {
-  .cue:hover { color: var(--ink); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   /* No walk-through: the arch, then the verse as a calm section below it. */
   .opening { height: auto; }
   .pin { position: relative; flex-direction: column; align-items: center; height: auto; overflow: visible; }
   .pin .stage { height: 100vh; height: 100svh; }
   .verse { position: static; opacity: 1; padding: 96px 28px; }
+  /* the cue stays at the bottom of the first screen, and keeps still */
+  .cue { top: calc(100svh - 68px); bottom: auto; animation: none; opacity: 1; }
+  .cue-arrow svg { animation: none; }
   /* the hearts rest where they are instead of floating */
   .verse { position: relative; }
   .heart { top: var(--rest); opacity: var(--o); animation: none; }
@@ -893,8 +995,8 @@ input:focus-visible, textarea:focus-visible { outline: none; border-color: var(-
   .reception { height: auto; }
   .rpin { position: relative; height: 100svh; }
   .r-dim { display: none; }
-  .bulb-glow, .chandelier-glow, .candle-glow, .floor-glow { opacity: 1 !important; }
-  .flame-c { opacity: 1 !important; }
+  .bulb-glow, .chandelier-glow, .candle-glow, .floor-glow, .flame-lit { opacity: 1 !important; }
+  .hook { display: none; }
   /* the envelope already open, the card out */
   .invite-env { height: auto; }
   .epin { position: relative; height: 100svh; }

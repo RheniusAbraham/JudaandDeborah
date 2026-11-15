@@ -4,10 +4,13 @@
 // glow inside, and roses and leaves climbing its sides from a full base at each foot.
 // Drawing space: w x 1000, the arch's posts at x = 40 and x = w - 40, its crown at y = 40.
 // Classes the scenes animate: .window-line (draw), .window-glow (fade), .af-leaf / .af-rose (grow).
+// Each moving part is its own Piece (see Piece.tsx), so the GPU moves it without repainting the rest.
 
 import { useMemo } from 'react';
 import { rng } from '@/lib/arch/geom';
+import type { CSSProperties } from 'react';
 import { Rose, Leaf } from './ArchArt';
+import Piece, { leafBox, roseBox, type Box } from './Piece';
 
 const INK = '#5a2f2a';
 const r0 = (n: number) => Math.round(n);
@@ -67,19 +70,20 @@ function Flowers({ w, leftTop, rightTop, seed }: { w: number; leftTop: number; r
     return { leaves, roses };
   }, [w, leftTop, rightTop, seed]);
 
+  const frame: Box = [0, 0, w, 1000];
   return (
-    <g>
+    <>
       {leaves.map((l, i) => (
-        <g key={i} className="af af-leaf">
+        <Piece key={i} frame={frame} box={leafBox(l.x, l.y, l.len, l.a)} className="af af-leaf">
           <Leaf x={l.x} y={l.y} len={l.len} a={l.a} />
-        </g>
+        </Piece>
       ))}
       {roses.map((r, i) => (
-        <g key={i} className="af af-rose">
+        <Piece key={i} frame={frame} box={roseBox(r.x, r.y, r.r)} className="af af-rose">
           <Rose x={r.x} y={r.y} r={r.r} tone={r.tone} seed={r.seed} rot={r.rot} />
-        </g>
+        </Piece>
       ))}
-    </g>
+    </>
   );
 }
 
@@ -100,19 +104,25 @@ export default function FloralArch({
   const spring = R + 40;
   const outline = `M40 1000V${spring}A${R} ${R} 0 0 1 ${w - 40} ${spring}V1000`;
   const inner = `M64 1000V${spring + 2}A${R - 24} ${R - 24} 0 0 1 ${w - 64} ${spring + 2}V1000`;
+  const frame: Box = [0, 0, w, 1000];
+  // a box with the drawing's exact proportions, standing at the bottom middle, so the pieces line up
   return (
-    <svg viewBox={`0 0 ${w} 1000`} preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-      <defs>
-        <radialGradient id={`${id}-glow`} cx=".5" cy=".42" r=".6">
-          <stop offset="0" stopColor="#fff6ec" />
-          <stop offset=".6" stopColor="#fde4d3" stopOpacity=".85" />
-          <stop offset="1" stopColor="#fbd6c2" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <path className="window-glow" d={`${outline}Z`} fill={`url(#${id}-glow)`} />
-      <path className="window-line" pathLength={1} strokeDasharray="1" d={outline} fill="none" stroke={INK} strokeOpacity={0.45} strokeWidth={2.4} />
-      <path className="window-line" pathLength={1} strokeDasharray="1" d={inner} fill="none" stroke="#c98b6f" strokeOpacity={0.5} strokeWidth={1.4} />
+    <div className="farch" style={{ '--ar': w / 1000, aspectRatio: `${w} / 1000` } as CSSProperties} aria-hidden="true">
+      <Piece frame={frame} box={frame} className="window-glow">
+        <defs>
+          <radialGradient id={`${id}-glow`} cx=".5" cy=".42" r=".6">
+            <stop offset="0" stopColor="#fff6ec" />
+            <stop offset=".6" stopColor="#fde4d3" stopOpacity=".85" />
+            <stop offset="1" stopColor="#fbd6c2" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <path d={`${outline}Z`} fill={`url(#${id}-glow)`} />
+      </Piece>
+      <Piece frame={frame} box={frame}>
+        <path className="window-line" pathLength={1} strokeDasharray="1" d={outline} fill="none" stroke={INK} strokeOpacity={0.45} strokeWidth={2.4} />
+        <path className="window-line" pathLength={1} strokeDasharray="1" d={inner} fill="none" stroke="#c98b6f" strokeOpacity={0.5} strokeWidth={1.4} />
+      </Piece>
       <Flowers w={w} leftTop={leftTop} rightTop={rightTop} seed={seed} />
-    </svg>
+    </div>
   );
 }

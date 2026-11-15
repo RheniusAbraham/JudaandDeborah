@@ -1,15 +1,17 @@
 import OpeningScene from '@/components/OpeningScene';
+import { ArchDefs } from '@/components/ArchArt';
 import CoupleScene from '@/components/CoupleScene';
 import FamiliesScene from '@/components/FamiliesScene';
 import HolyScene from '@/components/HolyScene';
 import ReceptionScene from '@/components/ReceptionScene';
 import RsvpScene from '@/components/RsvpScene';
 import ClosingScene from '@/components/ClosingScene';
-import ScrollGuide from '@/components/ScrollGuide';
+import Prewarm from '@/components/Prewarm';
 
 export default function Home() {
   return (
     <main id="main">
+      <ArchDefs />
       <OpeningScene />
       <CoupleScene />
       <FamiliesScene />
@@ -17,7 +19,7 @@ export default function Home() {
       <ReceptionScene />
       <RsvpScene />
       <ClosingScene />
-      <ScrollGuide />
+      <Prewarm />
     </main>
   );
 }

@@ -1,9 +1,10 @@
 'use client';
 
 // Drives a paused Anime.js timeline from scroll position through a section.
-// The section's scroll progress (0 when its top is LEAD of the way up the screen, 1 when its
+// The section's scroll progress (0 when its top is `lead` of the way up the screen, 1 when its
 // end reaches the bottom), so a scene is already coming alive as it scrolls in instead of
-// arriving as an empty screen. It is eased toward smoothly, so motion glides instead of jumping with the wheel.
+// arriving as an empty screen. A scene whose pieces fly in from beyond its edges uses lead 0,
+// so it only starts once it fills the screen (otherwise they'd be cut off at its top edge). It is eased toward smoothly, so motion glides instead of jumping with the wheel.
 // The timeline is built in "progress milliseconds": 0..1000.
 
 import { useEffect, type RefObject } from 'react';
@@ -12,7 +13,7 @@ import { createScope, type Timeline } from 'animejs';
 export const TL = 1000;
 const LEAD = 0.75;
 
-export function useScrollTimeline(root: RefObject<HTMLElement | null>, build: () => Timeline) {
+export function useScrollTimeline(root: RefObject<HTMLElement | null>, build: () => Timeline, { lead: leadShare = LEAD } = {}) {
   useEffect(() => {
     const el = root.current;
     if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -28,7 +29,7 @@ export function useScrollTimeline(root: RefObject<HTMLElement | null>, build: ()
     let last = 0;
     const progress = () => {
       const r = el.getBoundingClientRect();
-      const lead = window.innerHeight * LEAD;
+      const lead = window.innerHeight * leadShare;
       const range = el.offsetHeight - window.innerHeight + lead;
       return range > 0 ? Math.min(1, Math.max(0, (lead - r.top) / range)) : 0;
     };

@@ -7,7 +7,8 @@
 //   lights  three chandeliers
 //   strings strings of fairy lights
 //   front   guest tables in the near corners
-// Classes the scene animates: .bulb-glow, .chandelier-glow, .flame-c, .floor-glow.
+// Sheets the scene animates: .bulb-glow, .chandelier-glow, .flame-lit, .candle-glow, .floor-glow,
+// .rose-arch, .r-couple.
 
 import { useMemo, type ReactNode } from 'react';
 import { rng } from '@/lib/arch/geom';
@@ -19,9 +20,16 @@ const W = 1600;
 const H = 1400;
 const r0 = (n: number) => Math.round(n);
 
+/** One depth of the room: a box the scene moves (the parallax), holding a stack of Sheets. */
 function Layer({ name, children }: { name: string; children: ReactNode }) {
+  return <div className={`rlayer rl-${name}`}>{children}</div>;
+}
+
+/** One full-size drawing in a Layer's stack. All share the room's space and crop ("slice") the
+ *  same way, so they line up exactly; a Sheet with a class name is one the scene animates. */
+function Sheet({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <svg className={`rlayer rl-${name}`} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <svg className={className ? `rl-sheet rl-part ${className}` : 'rl-sheet'} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       {children}
     </svg>
   );
@@ -90,7 +98,7 @@ export function ReceptionDefs() {
 
 /* ------------------------------------------------------------------ wall */
 
-function Wall() {
+function WallArt() {
   const pleats = useMemo(() => {
     const out: { d: string; i: number }[] = [];
     for (let x = -20, i = 0; x < W + 40; x += 46, i++) {
@@ -104,7 +112,7 @@ function Wall() {
   }, []);
   const swags = Array.from({ length: 9 }, (_, i) => -100 + i * 200);
   return (
-    <Layer name="wall">
+    <>
       <rect width={W} height={H} fill="url(#re-wall)" />
       {pleats.map((p) => (
         <path key={p.i} d={p.d} fill={p.i % 2 ? 'url(#re-pleatB)' : 'url(#re-pleatA)'} />
@@ -124,14 +132,13 @@ function Wall() {
       {swags.map((x) => (
         <Rose key={`r${x}`} x={x} y={60} r={22} tone={x % 400 === 100 ? 'peach' : 'pink'} seed={700 + x} />
       ))}
-      {/* the polished floor, with the dance floor's glow */}
+      {/* the polished floor */}
       <rect x={0} y={1180} width={W} height={H - 1180} fill="url(#re-floor)" />
       <path d={`M0 1180H${W}`} stroke={INK} strokeOpacity={0.3} strokeWidth={2} />
       {Array.from({ length: 9 }, (_, i) => (
         <path key={i} d={`M${800 + (i - 4) * 60} 1180L${800 + (i - 4) * 260} ${H}`} stroke={INK} strokeOpacity={0.07} strokeWidth={1.4} />
       ))}
-      <ellipse className="floor-glow" cx={800} cy={1290} rx={520} ry={90} fill="url(#re-warm)" opacity={0} />
-    </Layer>
+    </>
   );
 }
 
@@ -155,7 +162,7 @@ function RoseArch() {
     return { leaves, roses };
   }, []);
   return (
-    <g className="rose-arch">
+    <>
       <circle cx={cx} cy={cy} r={R - 20} fill="url(#re-sheer)" />
       <circle cx={cx} cy={cy} r={R} fill="none" stroke="#8a6a52" strokeOpacity={0.5} strokeWidth={10} />
       {items.leaves.map((l, i) => (
@@ -164,41 +171,50 @@ function RoseArch() {
       {items.roses.map((r, i) => (
         <Rose key={i} x={r.x} y={r.y} r={r.r} tone={r.tone} seed={r.seed} rot={r.rot} />
       ))}
-    </g>
+    </>
   );
 }
 
+const CANDLES = [
+  { x: 570, h: 110 },
+  { x: 700, h: 150 },
+  { x: 900, h: 150 },
+  { x: 1030, h: 110 },
+];
+const CANDLE_BASE = 962;
+const candleFlame = (x: number, h: number) => `M${x} ${CANDLE_BASE - h - 62}c6 9 7 16 0 21c-7 -5 -6 -12 0 -21z`;
+
+/** A candlestick with its flame unlit (a dim flame); the glow and lit flame are layered on top. */
 function Candlestick({ x, h }: { x: number; h: number }) {
-  const base = 962;
+  const base = CANDLE_BASE;
   return (
     <g>
-      <ellipse className="candle-glow" cx={x} cy={base - h - 22} rx={46} ry={46} fill="url(#re-warm)" opacity={0} />
       <path d={`M${x - 18} ${base}h36l-10 -12h-16z`} fill="url(#re-gold)" stroke={INK} strokeOpacity={0.5} strokeWidth={1.2} />
       <rect x={x - 4} y={base - h} width={8} height={h - 10} fill="url(#re-gold)" />
       <circle cx={x} cy={base - h * 0.55} r={7} fill="url(#re-gold)" />
       <rect x={x - 7} y={base - h - 40} width={14} height={40} rx={3} fill="#fff8ec" stroke={INK} strokeOpacity={0.35} strokeWidth={1} />
-      <path className="flame-c" d={`M${x} ${base - h - 62}c6 9 7 16 0 21c-7 -5 -6 -12 0 -21z`} fill="url(#re-flame)" opacity={0.25} />
+      <path d={candleFlame(x, h)} fill="url(#re-flame)" opacity={0.25} />
     </g>
   );
 }
 
 /** The couple in their reception clothes, standing in the rose arch behind the head table
  *  (the table hides where the illustration is cut off at the knee). */
-function Couple() {
+function CoupleArt() {
   const h = 590;
   const w = Math.round((h * 1282) / 1657);
   return (
-    <g className="r-couple">
+    <>
       <ellipse cx={800} cy={985} rx={240} ry={26} fill={INK} fillOpacity={0.12} />
       <image href={couple2.src} x={800 - w / 2} y={420} width={w} height={h} preserveAspectRatio="xMidYMax meet" />
-    </g>
+    </>
   );
 }
 
 function HeadTable() {
   const pleats = Array.from({ length: 16 }, (_, i) => 410 + i * 48.75);
   return (
-    <g>
+    <>
       {/* the cloth, falling in soft pleats to the floor */}
       <rect x={410} y={978} width={780} height={222} fill="url(#re-cloth)" />
       {pleats.map((x, i) => (
@@ -224,23 +240,30 @@ function HeadTable() {
           <Rose x={x} y={944} r={i === 2 ? 30 : 20} tone={['pink', 'peach', 'coral', 'peach', 'pink'][i] as 'pink'} seed={870 + i} />
         </g>
       ))}
-      <Candlestick x={570} h={110} />
-      <Candlestick x={700} h={150} />
-      <Candlestick x={900} h={150} />
-      <Candlestick x={1030} h={110} />
-    </g>
+      {CANDLES.map((c) => (
+        <Candlestick key={c.x} x={c.x} h={c.h} />
+      ))}
+    </>
   );
 }
 
 /* ------------------------------------------------------------------ chandeliers */
 
+const CHANDELIERS = [
+  { cx: 800, top: 150, s: 1.15 },
+  { cx: 300, top: 110, s: 0.85 },
+  { cx: 1300, top: 110, s: 0.85 },
+];
+const chandelierTips = (s: number) => [-1, -0.55, 0.55, 1].map((k) => ({ dx: k * 130 * s, dy: Math.abs(k) > 0.8 ? 40 : 66 }));
+const chandelierFlame = (x: number, y: number, s: number) =>
+  `M${x} ${y - 42 * s}c${5 * s} ${7 * s} ${6 * s} ${12 * s} 0 ${16 * s}c${-6 * s} ${-4 * s} ${-5 * s} ${-9 * s} 0 ${-16 * s}z`;
+
 function Chandelier({ cx, top, s }: { cx: number; top: number; s: number }) {
   const arm = (dx: number, dy: number) =>
     `M${cx} ${top + 70 * s}C${cx + dx * 0.3} ${top + (70 + dy) * s} ${cx + dx * 0.8} ${top + (90 + dy) * s} ${cx + dx} ${top + (70 + dy) * s}`;
-  const tips = [-1, -0.55, 0.55, 1].map((k) => ({ dx: k * 130 * s, dy: Math.abs(k) > 0.8 ? 40 : 66 }));
+  const tips = chandelierTips(s);
   return (
     <g>
-      <circle className="chandelier-glow" cx={cx} cy={top + 110 * s} r={260 * s} fill="url(#re-warm)" opacity={0} />
       <path d={`M${cx} -20V${top + 20 * s}`} stroke="#8a6a3a" strokeWidth={3 * s} />
       <path d={`M${cx - 14 * s} ${top + 20 * s}h${28 * s}l${-6 * s} ${50 * s}h${-16 * s}z`} fill="url(#re-gold)" stroke={INK} strokeOpacity={0.5} strokeWidth={1.2} />
       {tips.map((t, i) => (
@@ -253,7 +276,7 @@ function Chandelier({ cx, top, s }: { cx: number; top: number; s: number }) {
           <g key={`c${i}`}>
             <path d={`M${x - 12 * s} ${y}h${24 * s}l${-4 * s} ${8 * s}h${-16 * s}z`} fill="url(#re-gold)" />
             <rect x={x - 5 * s} y={y - 26 * s} width={10 * s} height={26 * s} rx={2} fill="#fff8ec" />
-            <path className="flame-c" d={`M${x} ${y - 42 * s}c${5 * s} ${7 * s} ${6 * s} ${12 * s} 0 ${16 * s}c${-6 * s} ${-4 * s} ${-5 * s} ${-9 * s} 0 ${-16 * s}z`} fill="url(#re-flame)" opacity={0.25} />
+            <path d={chandelierFlame(x, y, s)} fill="url(#re-flame)" opacity={0.25} />
             {[1, 2, 3].map((k) => (
               <path key={k} d={`M${x} ${y + 10 * s + k * 14 * s}c${3 * s} ${4 * s} ${3 * s} ${8 * s} 0 ${10 * s}c${-3 * s} ${-2 * s} ${-3 * s} ${-6 * s} 0 ${-10 * s}z`} fill="#ffffff" fillOpacity={0.7} stroke={INK} strokeOpacity={0.3} strokeWidth={0.8} />
             ))}
@@ -274,47 +297,48 @@ function Chandelier({ cx, top, s }: { cx: number; top: number; s: number }) {
  * Fairy lights swagged along the two sides of the room only, framing the scene; nothing crosses
  * the middle, where the heading and the couple are.
  */
-function Strings() {
-  const strings = useMemo(() => {
-    // [x0, y0, x1, y1, sag] for each swag; the right side mirrors the left
-    const left: [number, number, number, number, number][] = [
-      [-80, 70, 520, 150, 200],
-      [-80, 230, 400, 300, 150],
-    ];
-    const swags = [...left, ...left.map(([a, b, c, d, s]) => [W - a, b, W - c, d, s] as [number, number, number, number, number])];
-    return swags.map(([x0, y0, x1, y1, sag], k) => {
-      const at = (t: number): [number, number] => [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t + sag * Math.sin(Math.PI * t)];
-      const pts: string[] = [];
-      for (let i = 0; i <= 40; i++) {
-        const [x, y] = at(i / 40);
-        pts.push(`${r0(x)} ${r0(y)}`);
-      }
-      const n = Math.max(6, Math.round(Math.abs(x1 - x0) / 46));
-      const bulbs = Array.from({ length: n }, (_, i) => {
-        const [x, y] = at((i + 0.5 + (k % 2) * 0.25) / (n + 0.25));
-        return { x: r0(x), y: r0(y) + 8 };
-      });
-      return { d: 'M' + pts.join('L'), bulbs };
+const STRINGS = (() => {
+  // [x0, y0, x1, y1, sag] for each swag; the right side mirrors the left
+  const left: [number, number, number, number, number][] = [
+    [-80, 70, 520, 150, 200],
+    [-80, 230, 400, 300, 150],
+  ];
+  const swags = [...left, ...left.map(([a, b, c, d, s]) => [W - a, b, W - c, d, s] as [number, number, number, number, number])];
+  return swags.map(([x0, y0, x1, y1, sag], k) => {
+    const at = (t: number): [number, number] => [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t + sag * Math.sin(Math.PI * t)];
+    const pts: string[] = [];
+    for (let i = 0; i <= 40; i++) {
+      const [x, y] = at(i / 40);
+      pts.push(`${r0(x)} ${r0(y)}`);
+    }
+    const n = Math.max(6, Math.round(Math.abs(x1 - x0) / 46));
+    const bulbs = Array.from({ length: n }, (_, i) => {
+      const [x, y] = at((i + 0.5 + (k % 2) * 0.25) / (n + 0.25));
+      return { x: r0(x), y: r0(y) + 8, i };
     });
-  }, []);
+    return { d: 'M' + pts.join('L'), bulbs };
+  });
+})();
+const BULB_WAVES = 4; // the bulbs light in four interleaved waves, like a string twinkling on
+
+function StringsArt() {
   return (
-    <Layer name="strings">
-      {strings.map((s, k) => (
+    <>
+      {STRINGS.map((s, k) => (
         <g key={k}>
           <path d={s.d} fill="none" stroke="#7a5a44" strokeOpacity={0.55} strokeWidth={1.6} />
-          {s.bulbs.map((b, i) => (
-            <g key={i}>
-              <circle className="bulb-glow" cx={b.x} cy={b.y} r={20} fill="url(#re-bulb)" opacity={0} />
-              <circle cx={b.x} cy={b.y} r={5.5} fill="#fff1c4" stroke={INK} strokeOpacity={0.35} strokeWidth={1} />
-            </g>
+          {s.bulbs.map((b) => (
+            <circle key={b.i} cx={b.x} cy={b.y} r={5.5} fill="#fff1c4" stroke={INK} strokeOpacity={0.35} strokeWidth={1} />
           ))}
         </g>
       ))}
-    </Layer>
+    </>
   );
 }
 
 /* ------------------------------------------------------------------ guest tables (front) */
+
+const GUESTS = [120, 1480];
 
 function GuestTable({ cx }: { cx: number }) {
   return (
@@ -328,32 +352,101 @@ function GuestTable({ cx }: { cx: number }) {
       <Leaf x={cx + 30} y={1240} len={50} a={-20} />
       <Rose x={cx - 14} y={1226} r={26} tone="pink" seed={cx} />
       <Rose x={cx + 22} y={1232} r={20} tone="peach" seed={cx + 1} />
-      <ellipse className="candle-glow" cx={cx + 90} cy={1190} rx={60} ry={60} fill="url(#re-warm)" opacity={0} />
       <rect x={cx + 82} y={1196} width={16} height={46} rx={3} fill="#fff8ec" stroke={INK} strokeOpacity={0.35} strokeWidth={1} />
-      <path className="flame-c" d={`M${cx + 90} 1174c6 9 7 16 0 21c-7 -5 -6 -12 0 -21z`} fill="url(#re-flame)" opacity={0.25} />
+      <path d={`M${cx + 90} 1174c6 9 7 16 0 21c-7 -5 -6 -12 0 -21z`} fill="url(#re-flame)" opacity={0.25} />
     </g>
   );
 }
 
+/* ------------------------------------------------------------------ the layers */
+
+/**
+ * The scene's five depths. Each is a stack of full-screen drawings that move together (the
+ * parallax), and anything that lights up or moves is its own drawing in the stack, so the GPU
+ * fades and moves it without repainting the rest of the room.
+ */
 export function ReceptionLayers() {
   return (
     <>
-      <Wall />
+      <Layer name="wall">
+        <Sheet>
+          <WallArt />
+        </Sheet>
+        <Sheet className="floor-glow">
+          <ellipse cx={800} cy={1290} rx={520} ry={90} fill="url(#re-warm)" />
+        </Sheet>
+      </Layer>
+
       {/* the lights hang behind the arch and the couple */}
-      <Strings />
+      <Layer name="strings">
+        <Sheet>
+          <StringsArt />
+        </Sheet>
+        {Array.from({ length: BULB_WAVES }, (_, w) => (
+          <Sheet key={w} className="bulb-glow">
+            {STRINGS.flatMap((s) => s.bulbs.filter((b) => b.i % BULB_WAVES === w)).map((b) => (
+              <circle key={`${b.x}-${b.y}`} cx={b.x} cy={b.y} r={20} fill="url(#re-bulb)" />
+            ))}
+          </Sheet>
+        ))}
+      </Layer>
+
       <Layer name="arch">
-        <RoseArch />
-        <Couple />
-        <HeadTable />
+        <Sheet className="rose-arch">
+          <RoseArch />
+        </Sheet>
+        <Sheet className="r-couple">
+          <CoupleArt />
+        </Sheet>
+        <Sheet className="candle-glow">
+          {CANDLES.map((c) => (
+            <ellipse key={c.x} cx={c.x} cy={CANDLE_BASE - c.h - 22} rx={46} ry={46} fill="url(#re-warm)" />
+          ))}
+        </Sheet>
+        <Sheet>
+          <HeadTable />
+        </Sheet>
+        <Sheet className="flame-lit">
+          {CANDLES.map((c) => (
+            <path key={c.x} d={candleFlame(c.x, c.h)} fill="url(#re-flame)" />
+          ))}
+        </Sheet>
       </Layer>
+
       <Layer name="lights">
-        <Chandelier cx={800} top={150} s={1.15} />
-        <Chandelier cx={300} top={110} s={0.85} />
-        <Chandelier cx={1300} top={110} s={0.85} />
+        <Sheet className="chandelier-glow">
+          {CHANDELIERS.map((c) => (
+            <circle key={c.cx} cx={c.cx} cy={c.top + 110 * c.s} r={260 * c.s} fill="url(#re-warm)" />
+          ))}
+        </Sheet>
+        <Sheet>
+          {CHANDELIERS.map((c) => (
+            <Chandelier key={c.cx} cx={c.cx} top={c.top} s={c.s} />
+          ))}
+        </Sheet>
+        <Sheet className="flame-lit">
+          {CHANDELIERS.flatMap((c) =>
+            chandelierTips(c.s).map((t, i) => <path key={`${c.cx}-${i}`} d={chandelierFlame(c.cx + t.dx, c.top + (70 + t.dy) * c.s, c.s)} fill="url(#re-flame)" />),
+          )}
+        </Sheet>
       </Layer>
+
       <Layer name="front">
-        <GuestTable cx={120} />
-        <GuestTable cx={1480} />
+        <Sheet>
+          {GUESTS.map((cx) => (
+            <GuestTable key={cx} cx={cx} />
+          ))}
+        </Sheet>
+        <Sheet className="candle-glow">
+          {GUESTS.map((cx) => (
+            <ellipse key={cx} cx={cx + 90} cy={1190} rx={60} ry={60} fill="url(#re-warm)" />
+          ))}
+        </Sheet>
+        <Sheet className="flame-lit">
+          {GUESTS.map((cx) => (
+            <path key={cx} d={`M${cx + 90} 1174c6 9 7 16 0 21c-7 -5 -6 -12 0 -21z`} fill="url(#re-flame)" />
+          ))}
+        </Sheet>
       </Layer>
     </>
   );
