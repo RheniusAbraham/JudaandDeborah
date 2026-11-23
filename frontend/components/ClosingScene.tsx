@@ -98,12 +98,8 @@ export default function ClosingScene() {
 
   useScrollTimeline(root, () =>
     createTimeline({ autoplay: false, defaults: { ease: 'outCubic' } })
-      // starting states
-      .set('.close-text > *', { opacity: 0, translateY: 14 }, 0)
-      .set('.close-names .ch, .close-amp', { opacity: 0 }, 0)
-      .set('.close-actions', { opacity: 0, translateY: 18 }, 0)
+      // starting states live in globals.css ("Starting states for the scroll scenes")
       // the leaves and roses wait out of sight until the scene fills the screen and they fly in
-      .set('.w-leaf, .w-rose', { opacity: 0 }, 0)
       // the wreath gathers: leaves first, then roses, each drifting home from where it started
       .add('.w-leaf', {
         translateX: { from: (el: unknown) => `${num(el, 'dx')}%`, to: '0%' },

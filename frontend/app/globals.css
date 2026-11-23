@@ -282,19 +282,18 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
 .o-head { text-align: center; margin-bottom: 2.4svh; }
 .o-title { font-family: var(--font-script), cursive; font-weight: 400; font-size: clamp(2.2rem, min(11vw, 7.5svh), 4.4rem); line-height: 1.1; color: var(--ink); }
 .o-sub { margin-top: .7em; font-style: italic; color: var(--ink-soft); font-size: clamp(.9rem, 2.3svh, 1.15rem); }
-.o-list {
-  list-style: none;
-  padding: 0;
+.o-wrap {
+  position: relative;
   width: min(100%, 23rem);
   font-size: clamp(.85rem, 2.55svh, 1.25rem);
   line-height: 1.35;
   --dot: .55em;
-  --mid: .955em; /* the middle of an item's first line: its top padding plus half a line */
+  --mid: .955em; /* the middle of an item's line: its top padding plus half a line */
 }
-.o-item { position: relative; padding: .28em 0 .28em 2.1em; }
+.o-list { list-style: none; padding: 0; }
+.o-item { position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: .28em 0 .28em 2.1em; }
 /* a little breath after the two timed entrances, before the service proper */
 .o-item.last-timed { padding-bottom: .95em; }
-.o-text { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 .o-name { white-space: nowrap; }
 .o-time { font-style: italic; color: var(--rose); font-variant-numeric: lining-nums; white-space: nowrap; }
 .o-item.timed .o-name { font-weight: 500; }
@@ -306,17 +305,17 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
   height: var(--dot);
   border-radius: 50%;
   background: var(--marigold);
-  box-shadow: 0 0 0 .22em rgba(232, 137, 44, .16), 0 0 .9em rgba(232, 137, 44, .45);
+  box-shadow: 0 0 0 .2em rgba(232, 137, 44, .2); /* a flat halo: no blur to repaint */
 }
-.o-item.timed .o-dot { background: var(--rose); box-shadow: 0 0 0 .22em rgba(194, 59, 87, .14), 0 0 .9em rgba(194, 59, 87, .35); }
-/* the gold line runs from this item's dot to the next one's */
-.o-seg {
+.o-item.timed .o-dot { background: var(--rose); box-shadow: 0 0 0 .2em rgba(194, 59, 87, .18); }
+/* one gold line from the first dot to the last (the last row has no extra padding) */
+.o-line {
   position: absolute;
   left: calc(.5em + var(--dot) / 2 - .5px);
   top: var(--mid);
+  bottom: var(--mid);
   width: 1px;
-  height: 100%;
-  background: linear-gradient(rgba(232, 137, 44, .75), rgba(201, 150, 60, .55));
+  background: linear-gradient(rgba(194, 59, 87, .6), rgba(232, 137, 44, .75) 18%, rgba(201, 150, 60, .55));
   transform-origin: 50% 0;
 }
 .o-end { width: clamp(20px, 3.6svh, 30px); height: clamp(20px, 3.6svh, 30px); margin-top: 2svh; color: #c9963c; overflow: visible; }
@@ -494,13 +493,15 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
    2. A scene that's off screen isn't drawn at all (content-visibility), so the page only
       ever pays for the scene in view. */
 .couple-figure, .window, .person, .fam-img, .fam-glow, .fam figcaption, .blessing,
-.church, .h-card, .h-light, .h-head,
-.o-head, .o-text, .o-dot, .o-seg, .o-end,
+.church, .h-card, .h-light, .h-head, .o-head,
 .env, .env-card, .env-head, .env-part, .rlayer, .r-card, .r-dim, .r-head,
-.wreath, .close-text > *, .close-names .ch, .close-amp, .close-actions,
-.verse, .inside, .together, .names .ch, .names .and, .after {
+.wreath, .close-text > *, .close-amp, .close-actions,
+.verse, .inside, .together, .names .and, .after {
   will-change: transform, opacity;
 }
+/* Not layered on purpose: iPhones give Safari a small GPU-layer budget for the whole page, and
+   going over it makes text vanish. The names' single letters and the order of service's rows are
+   small, so the browser simply repaints them as they move. */
 /* a part of a drawing lifted into its own box (components/Piece.tsx) */
 .piece { position: absolute; display: block; overflow: visible; pointer-events: none; will-change: transform, opacity; }
 .opening, .couple, .families, .holy, .order, .reception, .invite-env, .closing {
@@ -697,6 +698,22 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
 }
 @keyframes cue-in { from { opacity: 0; translate: -50% 10px; } to { opacity: 1; translate: -50% 0; } }
 @keyframes cue-bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+
+/* Starting states for the scroll scenes (only with JS, never with reduced motion).
+   They live here rather than in each timeline's .set(): Anime.js 4.5 sometimes leaves an
+   element at its .set() value when a slow frame makes the scroll jump (seen on iPhones), so
+   text and flowers stayed hidden. Each timeline's own from-values take over from these. */
+@media (prefers-reduced-motion: no-preference) {
+  .js .window-glow, .js .af, .js .person,
+  .js .fam-glow, .js .fam-img, .js .fam figcaption,
+  .js .h-card, .js .urn-leaf, .js .urn-rose,
+  .js .o-item, .js .o-end,
+  .js .r-couple, .js .r-card,
+  .js .close-text > *, .js .close-names .ch, .js .close-amp, .js .close-actions, .js .w-leaf, .js .w-rose { opacity: 0; }
+  .js .o-line { transform: scaleY(0); }
+  .js .rose-arch { opacity: .55; transform: scale(.94); }
+  .js .env-flap-open { transform: scaleY(0); }
+}
 
 /* Starting states for the Anime.js intro (only with JS, never with reduced motion). */
 @media (prefers-reduced-motion: no-preference) {

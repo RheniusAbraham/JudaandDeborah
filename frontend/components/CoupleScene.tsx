@@ -20,11 +20,7 @@ export default function CoupleScene() {
 
   useScrollTimeline(root, () =>
     createTimeline({ autoplay: false, defaults: { ease: 'outCubic' } })
-      // starting states for anything that only appears later
-      .set('.window-glow', { opacity: 0 }, 0)
-      .set('.af', { opacity: 0, scale: 0 }, 0)
-      .set('.person-bride', { opacity: 0, translateX: '-48px' }, 0)
-      .set('.person-groom', { opacity: 0, translateX: '48px' }, 0)
+      // starting states live in globals.css ("Starting states for the scroll scenes")
       // back: the window draws itself and glows; it drifts slowest
       .add('.window-line', { strokeDashoffset: [1, 0], duration: 420, ease: 'inOutSine' }, 0)
       .add('.window-glow', { opacity: [0, 1], duration: 420, ease: 'linear' }, 60)

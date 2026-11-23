@@ -17,10 +17,7 @@ export default function ReceptionScene() {
 
   useScrollTimeline(root, () =>
     createTimeline({ autoplay: false, defaults: { ease: 'outCubic' } })
-      // starting states for anything that only appears later
-      .set('.rose-arch', { opacity: 0.55, scale: 0.94 }, 0)
-      .set('.r-couple', { opacity: 0, translateY: 40 }, 0)
-      .set('.r-card', { opacity: 0, translateY: 30 }, 0)
+      // starting states live in globals.css ("Starting states for the scroll scenes")
       .add('.r-head', { opacity: [0, 1], translateY: [16, 0], duration: 180 }, 0)
       // the lights come on: bulbs one after another, then chandeliers and candles
       .add('.bulb-glow', { opacity: [0, 1], duration: 110, delay: stagger(24), ease: 'outQuad' }, 120)

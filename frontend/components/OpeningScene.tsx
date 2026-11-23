@@ -32,10 +32,12 @@ export default function OpeningScene() {
   // 1. Page-load moment: the arch appears, then the names write themselves in.
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    // the script is running, so the CSS safety net (which would re-animate everything at 6s) stands down
-    document.documentElement.classList.add('intro-run');
+    // The CSS safety net (which shows everything at 6s) stands down only once the intro has
+    // actually played to the end. If it stalls (a throttled or busy phone), the net still shows
+    // the names. Until 6s the net is only waiting, so it never fights the intro.
+    const done = () => document.documentElement.classList.add('intro-run');
     const scope = createScope({ root }).add(() => {
-      createTimeline({ defaults: { ease: 'outQuart', duration: 900 } })
+      createTimeline({ defaults: { ease: 'outQuart', duration: 900 }, onComplete: done })
         .add('.layers', { opacity: [0, 1], scale: [1.045, 1], duration: 1900 })
         .add('.together', { opacity: [0, 1], translateY: [10, 0] }, '-=1100')
         .add('.names .ch', { opacity: [0, 1], translateY: ['.4em', '0em'], delay: stagger(65), duration: 1300, ease: 'outExpo' }, '-=650')

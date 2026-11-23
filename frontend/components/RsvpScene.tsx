@@ -58,8 +58,7 @@ export default function RsvpScene() {
 
   useScrollTimeline(root, () =>
     createTimeline({ autoplay: false, defaults: { ease: 'outCubic' } })
-      // starting state: the opened flap is folded away until the closed one has lifted
-      .set('.env-flap-open', { scaleY: 0 }, 0)
+      // starting states live in globals.css ("Starting states for the scroll scenes")
       .add('.env-head', { opacity: [0, 1], translateY: [16, 0], duration: 180 }, 0)
       .add('.env', { translateY: ['24%', '0%'], opacity: [0, 1], duration: 260 }, 0)
       // the seal lifts away

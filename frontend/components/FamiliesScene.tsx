@@ -21,11 +21,7 @@ export default function FamiliesScene() {
 
   useScrollTimeline(root, () =>
     createTimeline({ autoplay: false, defaults: { ease: 'outCubic' } })
-      // starting states for anything that only appears later
-      .set('.fam-glow', { opacity: 0, scale: 0.7 }, 0)
-      .set('.fam-img', { opacity: 0, translateY: '28%' }, 0)
-      .set('.fam-bride figcaption', { opacity: 0, translateX: '32px' }, 0)
-      .set('.fam-groom figcaption', { opacity: 0, translateX: '-32px' }, 0)
+      // starting states live in globals.css ("Starting states for the scroll scenes")
       .add('.blessing', { opacity: [0, 1], translateY: [18, 0], duration: 240 }, 0)
       // back layer: soft glows, drifting slowest
       .add('.fam-bride .fam-glow', { opacity: [0, 1], scale: [0.7, 1], duration: 340 }, 60)

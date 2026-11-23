@@ -17,10 +17,7 @@ export default function HolyScene() {
 
   useScrollTimeline(root, () =>
     createTimeline({ autoplay: false, defaults: { ease: 'outCubic' } })
-      // starting states for anything that only appears later (the details wait in the light)
-      .set('.h-card', { opacity: 0, translateY: 28 }, 0)
-      .set('.h-light', { opacity: 0 }, 0)
-      .set('.urn-leaf, .urn-rose', { opacity: 0, scale: 0 }, 0)
+      // starting states live in globals.css ("Starting states for the scroll scenes")
       // the church rises into view, the heading with it
       .add('.h-head', { opacity: [0, 1], translateY: [16, 0], duration: 200 }, 0)
       .add('.church', { translateY: ['16%', '0%'], opacity: [0, 1], duration: 260 }, 0)
