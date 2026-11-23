@@ -10,7 +10,7 @@
 
 import { useEffect } from 'react';
 
-const SCENES = ['.couple', '.families', '.holy', '.reception', '.invite-env', '.closing'];
+const SCENES = ['.couple', '.families', '.holy', '.order', '.reception', '.invite-env', '.closing'];
 
 type IdleWindow = Window & {
   requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;

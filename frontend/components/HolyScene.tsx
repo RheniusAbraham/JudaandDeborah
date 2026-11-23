@@ -86,7 +86,7 @@ export default function HolyScene() {
             </a>
           </div>
         </div>
-        <Hook>And then, an evening to celebrate</Hook>
+        <Hook>The order of service</Hook>
       </div>
     </section>
   );

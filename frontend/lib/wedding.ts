@@ -32,6 +32,22 @@ export const wedding = {
     end: '2027-01-04T17:00:00+05:30',
     // opens this exact place in Google Maps (from the map link shared for the church)
     maps: 'https://maps.google.com/?cid=15349422656933301550',
+    // The order of service, shown in the scene after the church. A `time` is optional.
+    order: [
+      { name: 'Groom’s Entry', time: '2:55 PM' },
+      { name: 'Bridal March', time: '3:00 PM' },
+      { name: 'Opening Prayer' },
+      { name: 'Worship' },
+      { name: 'Message' },
+      { name: 'Special Song' },
+      { name: 'Solemnisation' },
+      { name: 'Blessing Prayer' },
+      { name: 'Registration' },
+      { name: 'Declaration of Marriage' },
+      { name: 'Greetings' },
+      { name: 'Vote of Thanks' },
+      { name: 'Prayer and Benediction' },
+    ] as { name: string; time?: string }[],
   },
 
   // Scene 5: the reception, the same evening.
