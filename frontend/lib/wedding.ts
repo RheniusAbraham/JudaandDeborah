@@ -62,7 +62,7 @@ export const wedding = {
     maps: 'https://maps.google.com/?cid=12115308714572026884',
   },
 
-  rsvpBy: '1 January 2027',
+  rsvpBy: '20 December 2026',
   // Where RSVPs are saved: the web-app address of the couple's Google Sheet script
   // (it ends in /exec; see rsvp/SETUP.md). Empty: the form works, but replies go nowhere.
   rsvpSheetUrl: 'https://script.google.com/macros/s/AKfycbyK7uVMd8Js8EKVhLRXuFzRSHlnxqA2-LrwF11AqY_Zy4bKZREPNw3FiFMsT3GyZJjEWw/exec',

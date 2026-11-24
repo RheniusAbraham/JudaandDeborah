@@ -111,6 +111,11 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
 
 /* the names: on phones they sit above the couple, bride on her side, groom on his */
 .person { position: absolute; top: max(3svh, 18px); width: 43%; }
+/* The name blocks and the families' captions move as layered boxes, and iPhone Safari crops a
+   layered box to its edges, cutting off the script's swashes (the d of Oushed). Hidden room all
+   round: padding outside the set width (content-box), handed back by the same negative margin,
+   so the text sits exactly where it did. */
+.person, .fam figcaption { box-sizing: content-box; padding: 1.25rem; margin: -1.25rem; }
 .person-bride { left: 4%; text-align: left; }
 .person-groom { right: 4%; text-align: right; }
 .pname { font-family: var(--font-script), cursive; font-weight: 400; font-size: clamp(1.9rem, 8vw, 3.4rem); line-height: 1.05; color: var(--ink); text-wrap: balance; }
@@ -378,10 +383,14 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
   right: 0;
   bottom: 8svh;
   margin: 0 auto;
-  width: min(96vw, calc(62svh * 1.25), 760px);
+  --w: min(96vw, calc(62svh * 1.25), 760px);
+  --u: calc(var(--w) / 100);
+  width: var(--w);
   aspect-ratio: 1000 / 800;
-  container-type: inline-size;
 }
+/* The card's sizes use --u (1% of the envelope's width), not container units (cqw): iPhone
+   Safari can size cqw against the wrong width in a scene drawn while off screen, blowing the
+   card's text up until it spills out of the envelope. */
 .env-part { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; } /* so the card's button stays tappable */
 .env-back { z-index: 1; }
 .env-flap-open { z-index: 2; transform-origin: 50% 32.75%; }  /* hinged at the top edge of the envelope */
@@ -399,38 +408,38 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.6cqw;
-  padding: 3cqw;
+  gap: calc(1.6 * var(--u));
+  padding: calc(3 * var(--u));
   text-align: center;
   background: linear-gradient(#fffaf5, #fdf1e8);
   border: 1px solid rgba(90, 47, 42, .2);
-  border-radius: 1.4cqw;
-  box-shadow: 0 1.5cqw 4cqw -2cqw rgba(90, 47, 42, .35);
+  border-radius: calc(1.4 * var(--u));
+  box-shadow: 0 calc(1.5 * var(--u)) calc(4 * var(--u)) calc(-2 * var(--u)) rgba(90, 47, 42, .35);
 }
 .env-card::before { /* a fine inner border, like a printed card */
   content: "";
   position: absolute;
-  inset: 1.4cqw;
+  inset: calc(1.4 * var(--u));
   border: 1px solid rgba(201, 154, 82, .55);
-  border-radius: 1cqw;
+  border-radius: calc(1 * var(--u));
   pointer-events: none;
 }
-.card-kicker { font-family: var(--font-script), cursive; font-size: 6.4cqw; line-height: 1.1; color: var(--ink); }
-.cd { display: flex; justify-content: center; gap: 5cqw; }
-.cd-unit { display: flex; flex-direction: column; align-items: center; min-width: 12cqw; }
-.cd-n { font-weight: 300; font-size: 8.6cqw; line-height: 1; font-variant-numeric: lining-nums tabular-nums; color: var(--ink); }
-.cd-l { font-style: italic; font-size: max(3.2cqw, 11px); color: var(--ink-soft); }
-.cd-today { font-size: 4cqw; font-style: italic; }
-.card-by { font-style: italic; font-size: max(3.2cqw, 11px); color: var(--ink-soft); }
+.card-kicker { font-family: var(--font-script), cursive; font-size: calc(6.4 * var(--u)); line-height: 1.1; color: var(--ink); }
+.cd { display: flex; justify-content: center; gap: calc(5 * var(--u)); }
+.cd-unit { display: flex; flex-direction: column; align-items: center; min-width: calc(12 * var(--u)); }
+.cd-n { font-weight: 300; font-size: calc(8.6 * var(--u)); line-height: 1; font-variant-numeric: lining-nums tabular-nums; color: var(--ink); }
+.cd-l { font-style: italic; font-size: max(calc(3.2 * var(--u)), 11px); color: var(--ink-soft); }
+.cd-today { font-size: calc(4 * var(--u)); font-style: italic; }
+.card-by { font-style: italic; font-size: max(calc(3.2 * var(--u)), 11px); color: var(--ink-soft); }
 .btn.small { min-height: 44px; padding: 0 22px; font-size: .95rem; }
-.card-btn { margin-top: .6cqw; position: relative; z-index: 1; }
+.card-btn { margin-top: calc(.6 * var(--u)); position: relative; z-index: 1; }
 
 .rsvp-sec { position: relative; padding: 24px 22px 40px; background: var(--paper); scroll-margin-top: 16px; }
 .rsvp-title, .env-title, .h-title, .r-title { font-family: var(--font-script), cursive; font-style: normal; font-weight: 400; }
 .rsvp-title, .env-title { font-size: clamp(2.7rem, 12vw, 4.4rem); line-height: 1.1; text-align: center; color: var(--ink); }
 
 @media (min-width: 900px) and (orientation: landscape) {
-  .env { width: min(60vw, calc(70svh * 1.25), 900px); }
+  .env { --w: min(60vw, calc(70svh * 1.25), 900px); }
 }
 
 /* ================= SCENE 7: THE CLOSING ================= */
@@ -451,9 +460,10 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
 }
 .wreath {
   position: relative;
-  width: min(94vw, 66svh, 640px);
+  --w: min(94vw, 66svh, 640px);
+  --u: calc(var(--w) / 100); /* 1% of the wreath's width, for the words inside (see .env) */
+  width: var(--w);
   aspect-ratio: 1;
-  container-type: inline-size;
 }
 .wreath-art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .w-leaf, .w-rose { transform-origin: 50% 50%; }
@@ -465,14 +475,14 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 1.4cqw;
+  gap: calc(1.4 * var(--u));
 }
-.close-kicker { font-style: italic; font-weight: 300; font-size: 5cqw; line-height: 1.3; color: var(--ink); text-wrap: balance; }
-.close-names { font-family: var(--font-script), cursive; font-size: 11cqw; line-height: 1.05; color: var(--ink); display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: 2.5cqw; }
-.close-names .ch { display: inline-block; }
+.close-kicker { font-style: italic; font-weight: 300; font-size: calc(5 * var(--u)); line-height: 1.3; color: var(--ink); text-wrap: balance; }
+.close-names { font-family: var(--font-script), cursive; font-size: calc(11 * var(--u)); line-height: 1.05; color: var(--ink); display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; column-gap: calc(2.5 * var(--u)); }
+.close-names .ch { display: inline-block; padding: .4em .55em; margin: -.4em -.55em; } /* room for the swashes (see .names .ch) */
 .close-amp { display: inline-block; font-family: var(--font-serif), serif; font-style: italic; font-weight: 300; font-size: .5em; color: var(--rose-bright); }
-.close-date { font-size: max(4.4cqw, 14px); color: var(--ink); }
-.close-verse { font-style: italic; font-size: max(4.2cqw, 13px); line-height: 1.35; color: var(--ink-soft); }
+.close-date { font-size: max(calc(4.4 * var(--u)), 14px); color: var(--ink); }
+.close-verse { font-style: italic; font-size: max(calc(4.2 * var(--u)), 13px); line-height: 1.35; color: var(--ink-soft); }
 .close-verse span { display: block; font-style: normal; font-size: .85em; }
 .close-actions { display: grid; gap: 10px; width: min(92vw, 22rem); }
 
@@ -582,7 +592,10 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
   height: 100%;
   width: auto;
   aspect-ratio: var(--ratio);
-  container-type: inline-size;
+  /* 1% of the stage's width (it is the screen's height times the artwork's proportions), for
+     the words inside the arch. Not container units (cqw): see .env. */
+  --u: calc(100vh * 1536 / 2314 / 100);
+  --u: calc(100svh * 1536 / 2314 / 100);
   /* no clipping here: the curtains travel out to the edge of the screen (.pin clips) */
 }
 
@@ -602,7 +615,7 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
 .together {
   font-style: italic;
   font-weight: 300;
-  font-size: 3.7cqw;
+  font-size: calc(3.7 * var(--u));
   color: var(--ink-soft);
   letter-spacing: .01em;
 }
@@ -611,23 +624,27 @@ div.layer { position: absolute; inset: 0; pointer-events: none; }
   font-weight: 400;
   color: var(--ink);
   line-height: 1;
-  margin: 2.2cqw 0 1.6cqw;
+  margin: calc(2.2 * var(--u)) 0 calc(1.6 * var(--u));
 }
-.names .n { display: block; font-size: 13.2cqw; padding: .08em .1em .14em; }
-.names .ch { display: inline-block; }
+.names .n { display: block; font-size: calc(13.2 * var(--u)); padding: .08em .1em .14em; }
+/* Each letter is its own box so it can animate. The script's swashes (the J's loop, the d's
+   ascender, the D's stem) reach far outside a letter's box, and iPhone Safari crops a moving
+   box to its edges. So each box gets room all round (padding), and the same negative margin
+   hands that space back, so no letter moves. */
+.names .ch { display: inline-block; padding: .4em .55em; margin: -.4em -.55em; }
 .names .and {
   display: block;
   font-family: var(--font-serif), serif;
   font-style: italic;
   font-weight: 300;
-  font-size: 6.4cqw;
+  font-size: calc(6.4 * var(--u));
   line-height: 1;
   color: var(--rose-bright);
   margin: -.1em 0 -.05em;
 }
-.invite { font-style: italic; font-weight: 300; font-size: 3.5cqw; color: var(--ink-soft); }
-.when { font-size: 4.7cqw; font-weight: 500; margin-top: 3cqw; letter-spacing: .01em; }
-.where { font-size: 3.6cqw; color: var(--ink-soft); }
+.invite { font-style: italic; font-weight: 300; font-size: calc(3.5 * var(--u)); color: var(--ink-soft); }
+.when { font-size: calc(4.7 * var(--u)); font-weight: 500; margin-top: calc(3 * var(--u)); letter-spacing: .01em; }
+.where { font-size: calc(3.6 * var(--u)); color: var(--ink-soft); }
 
 /* "Swipe up": tells guests the invitation continues. It fades in once the names have written
    themselves, and away as soon as the guest moves on (OpeningScene adds .cue-off). */

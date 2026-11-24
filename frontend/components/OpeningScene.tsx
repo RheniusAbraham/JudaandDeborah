@@ -35,7 +35,12 @@ export default function OpeningScene() {
     // The CSS safety net (which shows everything at 6s) stands down only once the intro has
     // actually played to the end. If it stalls (a throttled or busy phone), the net still shows
     // the names. Until 6s the net is only waiting, so it never fights the intro.
-    const done = () => document.documentElement.classList.add('intro-run');
+    const done = () => {
+      document.documentElement.classList.add('intro-run');
+      // the names have landed: drop their leftover (identity) transforms, so Safari stops
+      // treating each letter as a separately moving box and draws the names as plain text
+      root.current?.querySelectorAll<HTMLElement>('.names .ch, .names .and').forEach((el) => (el.style.transform = ''));
+    };
     const scope = createScope({ root }).add(() => {
       createTimeline({ defaults: { ease: 'outQuart', duration: 900 }, onComplete: done })
         .add('.layers', { opacity: [0, 1], scale: [1.045, 1], duration: 1900 })
